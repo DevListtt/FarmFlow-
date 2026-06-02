@@ -1,0 +1,48 @@
+# FarmFlow Backend Requirements
+# ERP Agricole Open Source
+
+# FastAPI et dépendances
+fastapi==0.109.0
+uvicorn==0.27.0
+python-multipart==0.0.6
+python-jose[cryptography]==3.3.0
+passlib[bcrypt]==1.7.4
+python-dotenv==1.0.0
+
+# Base de données
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+alembic==1.13.1
+
+# Pydantic
+pydantic==2.5.3
+email-validator==2.1.0
+
+# IA et traitement d'images
+numpy==1.26.2
+opencv-python==4.8.1.78
+pillow==10.1.0
+pytesseract==0.3.10
+scikit-learn==1.4.0
+
+# Communication
+requests==2.31.0
+twilio==9.0.0
+sendgrid==6.9.7
+
+# Export et PDF
+reportlab==4.0.7
+python-barcode==0.15.1
+pdfkit==1.0.0
+
+# MQTT et IoT
+paho-mqtt==1.6.1
+
+# Redis
+redis==5.0.1
+
+# InfluxDB (Time-series)
+influxdb-client==1.41.0
+
+# Autres
+python-dateutil==2.8.2

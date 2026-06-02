@@ -1,0 +1,161 @@
+# FarmFlow Docker Compose - Développement
+# ERP Agricole Open Source
+
+version: '3.8'
+
+services:
+  # Backend FastAPI
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: farmflow_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../backend:/app
+      - ./uploads:/app/uploads
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=True
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_USER=farmflow
+      - POSTGRES_PASSWORD=farmflow
+      - POSTGRES_DB=farmflow
+      - INFLUXDB_HOST=influxdb
+      - INFLUXDB_PORT=8086
+      - REDIS_URL=redis://redis:6379/0
+      - SECRET_KEY=farmflow-secret-key-change-in-production
+    depends_on:
+      - postgres
+      - redis
+      - influxdb
+    networks:
+      - farmflow_network
+
+  # Base de données PostgreSQL
+  postgres:
+    image: postgres:15-alpine
+    container_name: farmflow_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=farmflow
+      - POSTGRES_PASSWORD=farmflow
+      - POSTGRES_DB=farmflow
+    networks:
+      - farmflow_network
+
+  # Base de données InfluxDB (Time-series)
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: farmflow_influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    volumes:
+      - influxdb_data:/var/lib/influxdb2
+      - influxdb_config:/etc/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_USERNAME=farmflow
+      - DOCKER_INFLUXDB_INIT_PASSWORD=farmflow
+      - DOCKER_INFLUXDB_INIT_ORG=farmflow
+      - DOCKER_INFLUXDB_INIT_BUCKET=farmflow_metrics
+      - DOCKER_INFLUXDB_INIT_ADMIN_TOKEN=farmflow-token
+    networks:
+      - farmflow_network
+
+  # Redis (Cache)
+  redis:
+    image: redis:7-alpine
+    container_name: farmflow_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - farmflow_network
+
+  # MQTT Broker (IoT)
+  mqtt:
+    image: eclipse-mosquitto:2.0
+    container_name: farmflow_mqtt
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - mqtt_data:/mosquitto/data
+      - mqtt_log:/mosquitto/log
+      - mqtt_config:/mosquitto/config
+    networks:
+      - farmflow_network
+
+  # Node-RED (IoT Flow)
+  node-red:
+    image: nodered/node-red:3.1
+    container_name: farmflow_node_red
+    restart: unless-stopped
+    ports:
+      - "1880:1880"
+    volumes:
+      - node_red_data:/data
+    environment:
+      - TZ=Europe/Paris
+    networks:
+      - farmflow_network
+
+  # Frontend Next.js (optionnel pour le développement)
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: farmflow_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    volumes:
+      - ../frontend:/app
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    networks:
+      - farmflow_network
+
+  # Nginx (Reverse Proxy)
+  nginx:
+    image: nginx:alpine
+    container_name: farmflow_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/ssl
+    depends_on:
+      - backend
+    networks:
+      - farmflow_network
+
+volumes:
+  postgres_data:
+  influxdb_data:
+  influxdb_config:
+  redis_data:
+  mqtt_data:
+  mqtt_log:
+  mqtt_config:
+  node_red_data:
+
+networks:
+  farmflow_network:
+    driver: bridge
