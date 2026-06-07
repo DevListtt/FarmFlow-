@@ -18,7 +18,6 @@
 
 > Identité UI obligatoire : avant toute modification frontend, lire [`docs/brand/identity.md`](brand/identity.md). FarmFlow est un cockpit numérique professionnel bleu marine / bleu électrique, sans vert dominant ni esthétique bio générique.
 
-
 **FarmFlow** est un ERP (Enterprise Resource Planning) agricole open source complet, conçu pour répondre aux besoins spécifiques des exploitations agricoles modernes. Il offre une solution intégrée pour gérer tous les aspects de votre exploitation, de la gestion des animaux à la comptabilité, en passant par les ressources humaines et la communication.
 
 ### 🎯 Fonctionnalités principales

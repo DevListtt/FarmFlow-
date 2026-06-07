@@ -21,13 +21,13 @@ export default function ModuleWorkspace({ title, subtitle, icon: Icon, status = 
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-sm font-semibold uppercase tracking-wide text-primary-600">Espace FarmFlow</p>
-            <h1 className="mt-2 flex items-center gap-3 text-3xl font-bold text-gray-900">
+            <h1 className="mt-2 flex items-center gap-3 text-3xl font-bold text-brand-text">
               <span className="flex h-10 w-10 items-center justify-center rounded-xl border border-primary-100 bg-primary-50 text-primary-600">
                 {hasIconComponent ? <Icon className="h-5 w-5" aria-hidden="true" /> : <span className="h-2 w-2 rounded-full bg-primary-500" />}
               </span>
               {title}
             </h1>
-            <p className="mt-3 max-w-3xl text-gray-600">{subtitle}</p>
+            <p className="mt-3 max-w-3xl text-brand-muted">{subtitle}</p>
           </div>
           <span className="badge badge-primary self-start md:self-center">{roadmapLabels[status]}</span>
         </div>
@@ -35,7 +35,7 @@ export default function ModuleWorkspace({ title, subtitle, icon: Icon, status = 
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <section className="card p-6 xl:col-span-2">
-          <h2 className="text-xl font-semibold text-gray-900">Priorités métier</h2>
+          <h2 className="text-xl font-semibold text-brand-text">Priorités métier</h2>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {priorities.map((priority) => (
               <div key={priority} className="rounded-xl border border-gray-200 p-4 text-sm text-gray-700">
@@ -46,12 +46,12 @@ export default function ModuleWorkspace({ title, subtitle, icon: Icon, status = 
         </section>
 
         <section className="card p-6">
-          <h2 className="text-xl font-semibold text-gray-900">Indicateurs</h2>
+          <h2 className="text-xl font-semibold text-brand-text">Indicateurs</h2>
           <div className="mt-4 space-y-3">
             {kpis.map((kpi) => (
               <div key={kpi.label} className="flex items-center justify-between rounded-xl bg-gray-50 p-3">
-                <span className="text-sm text-gray-600">{kpi.label}</span>
-                <span className="font-semibold text-gray-900">{kpi.value}</span>
+                <span className="text-sm text-brand-muted">{kpi.label}</span>
+                <span className="font-semibold text-brand-text">{kpi.value}</span>
               </div>
             ))}
           </div>
@@ -59,7 +59,7 @@ export default function ModuleWorkspace({ title, subtitle, icon: Icon, status = 
       </div>
 
       <section className="card mt-6 p-6">
-        <h2 className="text-xl font-semibold text-gray-900">API et intégrations prévues</h2>
+        <h2 className="text-xl font-semibold text-brand-text">API et intégrations prévues</h2>
         <div className="mt-4 flex flex-wrap gap-2">
           {endpoints.map((endpoint) => (
             <code key={endpoint} className="rounded-lg bg-slate-900 px-3 py-2 text-sm text-white">

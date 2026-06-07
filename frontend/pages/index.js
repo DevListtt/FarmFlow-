@@ -118,10 +118,10 @@ const icons = {
 
 const KpiCard = ({ label, value, unit, color = 'primary' }) => (
   <div className="card p-6 animate-fade-in">
-    <p className="text-sm font-medium text-gray-500">{label}</p>
+    <p className="text-sm font-medium text-brand-muted">{label}</p>
     <div className="mt-3 flex items-end gap-2">
-      <span className="text-3xl font-bold text-gray-900">{value}</span>
-      <span className="pb-1 text-sm text-gray-500">{unit}</span>
+      <span className="text-3xl font-bold text-brand-text">{value}</span>
+      <span className="pb-1 text-sm text-brand-muted">{unit}</span>
     </div>
     <div className={`mt-4 h-2 rounded-full ${colorClasses[color] || colorClasses.primary}`} />
   </div>
@@ -138,12 +138,12 @@ const WorkspaceCard = ({ espace }) => {
           <Icon className="h-5 w-5" aria-hidden="true" />
         </span>
         <div>
-          <h3 className="text-lg font-semibold text-gray-900">{espace.titre}</h3>
+          <h3 className="text-lg font-semibold text-brand-text">{espace.titre}</h3>
           <span className="badge badge-primary mt-1">{espace.statut}</span>
         </div>
       </div>
     </div>
-    <p className="mt-4 text-sm leading-6 text-gray-600">{espace.description}</p>
+    <p className="mt-4 text-sm leading-6 text-brand-muted">{espace.description}</p>
   </article>
   )
 }
@@ -217,8 +217,8 @@ export default function Home() {
       <section className="mb-8">
         <div className="mb-4 flex items-center justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Espaces de travail</h2>
-            <p className="text-sm text-gray-500">Une ferme pilotée par atelier, flux, marge et obligation réglementaire.</p>
+            <h2 className="text-xl font-semibold text-brand-text">Espaces de travail</h2>
+            <p className="text-sm text-brand-muted">Une ferme pilotée par atelier, flux, marge et obligation réglementaire.</p>
           </div>
         </div>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -232,8 +232,8 @@ export default function Home() {
       <section className="card mb-8 p-6">
         <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Propositions prioritaires</h2>
-            <p className="text-sm text-gray-500">Les prochaines fonctions à livrer pour rendre FarmFlow vraiment exploitable.</p>
+            <h2 className="text-xl font-semibold text-brand-text">Propositions prioritaires</h2>
+            <p className="text-sm text-brand-muted">Les prochaines fonctions à livrer pour rendre FarmFlow vraiment exploitable.</p>
           </div>
           <a href="/api/pilotage/roadmap" className="text-sm font-medium text-primary-600 hover:text-primary-700">API roadmap →</a>
         </div>
@@ -244,8 +244,8 @@ export default function Home() {
                 <span className="badge badge-warning">{fonction.priorite}</span>
                 <span className="text-xs uppercase tracking-wide text-gray-400">{fonction.module}</span>
               </div>
-              <h3 className="mt-3 font-semibold text-gray-900">{fonction.titre}</h3>
-              <p className="mt-2 text-sm leading-6 text-gray-600">{fonction.impact}</p>
+              <h3 className="mt-3 font-semibold text-brand-text">{fonction.titre}</h3>
+              <p className="mt-2 text-sm leading-6 text-brand-muted">{fonction.impact}</p>
             </article>
           ))}
         </div>
@@ -253,7 +253,7 @@ export default function Home() {
 
       <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <div className="card p-6 xl:col-span-2">
-          <h2 className="text-xl font-semibold text-gray-900">Chaîne de pilotage prévue</h2>
+          <h2 className="text-xl font-semibold text-brand-text">Chaîne de pilotage prévue</h2>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             {[
               'Saisie technique terrain → coûts par intervention',
@@ -269,7 +269,7 @@ export default function Home() {
         </div>
 
         <div className="card p-6">
-          <h2 className="text-xl font-semibold text-gray-900">Alertes flux</h2>
+          <h2 className="text-xl font-semibold text-brand-text">Alertes flux</h2>
           <div className="mt-4 space-y-3">
             {pilotage.alertes.map((alerte) => (
               <AlertCard key={alerte.titre} alerte={alerte} />

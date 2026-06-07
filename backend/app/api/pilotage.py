@@ -5,10 +5,10 @@ Ce module prépare le socle transverse façon ERP/Odoo agricole :
 vue synthétique technique et économique, caisse, marges, banque,
 alertes de flux, IA préparatoire et exports réglementaires.
 """
-from datetime import date, datetime
-from typing import Any, Dict, List, Optional
 import csv
 import io
+from datetime import date, datetime
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from fastapi.responses import StreamingResponse
@@ -76,7 +76,6 @@ class EncaissementRequest(BaseModel):
     client_id: Optional[int] = None
     reference: Optional[str] = None
     observations: Optional[str] = None
-
 
 
 
