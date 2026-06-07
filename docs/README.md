@@ -28,14 +28,31 @@
 - **Gestion de la flotte** : Véhicules, entretiens, suivi du carburant
 - **CRM** : Clients, prospects, historique, segmentation
 - **Communication** : Mailing, SMS, WhatsApp, VoIP
-- **Intelligence Artificielle** : Analyse prédictive, recommandations, chatbot, OCR, vision par ordinateur
+- **Pilotage synthétique** : Vue type Odoo agricole regroupant technique, économie, caisse, banque, IA et conformité
+- **Caisse agricole** : Tickets, ventes directes, clôtures, moyens de paiement et rapprochement comptable
+- **Marge brute & simulateurs** : Prix de revient, seuils de rentabilité, scénarios par culture, lot ou atelier
+- **Banque & flux** : Synchro bancaire à préparer, catégorisation, alertes de trésorerie et analyse des décaissements
+- **Intelligence Artificielle** : Analyse prédictive, recommandations, chatbot, OCR, vision par ordinateur et assistant contextualisé
 - **Calendrier** : Événements, rappels, synchronisation
-- **Export des données** : Comptabilité, RH, CRM, flotte
+- **Export des données** : Comptabilité, FEC, journaux, grand livre, balance, RH, CRM, flotte
 - **Intégrations externes** : Zapier, code-barres, étiquettes réglementaires, API météo, paiement en ligne
+
+
+### 🧭 Vision produit : un Odoo agricole
+
+FarmFlow vise un environnement centralisé où l'exploitant pilote toute la ferme depuis un même espace :
+
+- **Technique** : animaux, parcelles, cultures, stocks, chantiers, flotte, calendrier et traçabilité.
+- **Économique** : caisse, ventes, comptabilité, marges brutes, prix de revient, simulations et budget/réel.
+- **Trésorerie** : préparation de la synchronisation bancaire, catégorisation des flux, rapprochement facture/paiement et alertes.
+- **IA** : socle préparé pour assistant contextualisé, OCR de factures, anomalies de flux, recommandations et synthèses.
+- **Réglementaire** : exports comptables et techniques horodatés pour expert-comptable, FEC, journaux, grand livre, balance et TVA.
+
+Le premier socle transverse est exposé via `/pilotage/*` pour fournir la synthèse, les simulateurs, l'analyse bancaire préparatoire et le catalogue d'exports réglementaires.
 
 ### 📊 Statistiques
 
-- **12+** modules intégrés
+- **14+** modules intégrés
 - **50+** modèles de données
 - **100+** endpoints API
 - **100%** open source
@@ -191,6 +208,7 @@ farmflow/
 │   ├── components/          # Composants React
 │   ├── styles/              # Styles Tailwind CSS
 │   ├── public/              # Fichiers statiques
+│   ├── Dockerfile
 │   ├── package.json
 │   ├── tailwind.config.js
 │   └── next.config.js
@@ -227,6 +245,28 @@ farmflow/
 ---
 
 ## 📦 Modules
+
+### 🧭 Module Pilotage
+
+Vue transversale de pilotage façon ERP/Odoo agricole.
+
+**Fonctionnalités:**
+- Dashboard synthétique technique, économique, banque, caisse, IA et conformité
+- Préparation d'une caisse pour ventes directes et clôtures journalières
+- Simulateur de marge brute par atelier
+- Préparation de la synchronisation bancaire et analyse des flux
+- Catalogue d'exports réglementaires comptables et techniques
+- Préparation des points d'intégration IA
+
+**Endpoints API:**
+- `GET /pilotage/dashboard` : Synthèse globale de la ferme
+- `GET /pilotage/caisse` : Socle caisse et contrôles
+- `GET /pilotage/marges` : Indicateurs économiques et exemples
+- `POST /pilotage/marges/simuler` : Simulation de marge brute
+- `GET /pilotage/banque` : Préparation de synchro bancaire
+- `POST /pilotage/banque/analyser-flux` : Analyse de flux et alertes
+- `GET /pilotage/ia/preparation` : Objectifs et garde-fous IA
+- `GET /pilotage/exports/reglementaires` : Exports comptables et réglementaires
 
 ### 🐄 Module Animaux
 

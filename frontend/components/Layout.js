@@ -18,6 +18,10 @@ const Icons = {
   communication: '📧',
   ia: '🤖',
   calendrier: '📅',
+  caisse: '🧾',
+  banque: '🏦',
+  marges: '📈',
+  export: '📚',
   dashboard: '🏠',
   settings: '⚙️',
   help: '❓'
@@ -25,19 +29,18 @@ const Icons = {
 
 // Navigation items
 const navigation = [
-  { name: 'Tableau de bord', href: '/', icon: Icons.dashboard },
+  { name: 'Pilotage ferme', href: '/', icon: Icons.dashboard },
+  { name: 'Technique', href: '/#technique', icon: Icons.parcelles },
+  { name: 'Marges & simulateurs', href: '/#economie', icon: Icons.marges },
+  { name: 'Caisse', href: '/#caisse', icon: Icons.caisse },
+  { name: 'Banque & flux', href: '/#banque', icon: Icons.banque },
+  { name: 'Exports réglementaires', href: '/#reglementaire', icon: Icons.export },
+  { name: 'IA agricole', href: '/#ia', icon: Icons.ia },
   { name: 'Animaux', href: '/animaux', icon: Icons.animaux },
   { name: 'Parcelles', href: '/parcelles', icon: Icons.parcelles },
   { name: 'Stocks', href: '/stocks', icon: Icons.stocks },
   { name: 'Ventes', href: '/ventes', icon: Icons.ventes },
-  { name: 'Chantiers', href: '/chantiers', icon: Icons.chantiers },
-  { name: 'RH', href: '/rh', icon: Icons.rh },
-  { name: 'Flotte', href: '/flotte', icon: Icons.flotte },
-  { name: 'CRM', href: '/crm', icon: Icons.crm },
   { name: 'Comptabilité', href: '/comptabilite', icon: Icons.comptabilite },
-  { name: 'Communication', href: '/communication', icon: Icons.communication },
-  { name: 'IA', href: '/ia', icon: Icons.ia },
-  { name: 'Calendrier', href: '/calendrier', icon: Icons.calendrier },
 ]
 
 // Bottom navigation
@@ -99,7 +102,7 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen bg-gray-50">
       <Head>
-        <title>FarmFlow - ERP Agricole</title>
+        <title>FarmFlow - Pilotage agricole</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
 

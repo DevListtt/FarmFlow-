@@ -9,7 +9,7 @@ from .database import engine, Base, init_db
 from .core.config import settings
 from .api import (
     animaux, parcelles, stocks, ventes, chantiers,
-    rh, flotte, crm, comptabilite, communication, ia, export, zapier, calendrier
+    rh, flotte, crm, comptabilite, communication, ia, export, zapier, calendrier, pilotage
 )
 
 # Initialiser la base de données (optionnel, peut être fait via Alembic)
@@ -81,20 +81,21 @@ app.add_middleware(
 
 
 # Inclure tous les routeurs
-app.include_router(animaux.router, prefix="/animaux", tags=["animaux"])
-app.include_router(parcelles.router, prefix="/parcelles", tags=["parcelles"])
-app.include_router(stocks.router, prefix="/stocks", tags=["stocks"])
-app.include_router(ventes.router, prefix="/ventes", tags=["ventes"])
-app.include_router(chantiers.router, prefix="/chantiers", tags=["chantiers"])
-app.include_router(rh.router, prefix="/rh", tags=["rh"])
-app.include_router(flotte.router, prefix="/flotte", tags=["flotte"])
-app.include_router(crm.router, prefix="/crm", tags=["crm"])
-app.include_router(comptabilite.router, prefix="/comptabilite", tags=["comptabilite"])
-app.include_router(communication.router, prefix="/communication", tags=["communication"])
-app.include_router(ia.router, prefix="/ia", tags=["ia"])
-app.include_router(export.router, prefix="/export", tags=["export"])
-app.include_router(zapier.router, prefix="/zapier", tags=["zapier"])
-app.include_router(calendrier.router, prefix="/calendrier", tags=["calendrier"])
+app.include_router(animaux.router)
+app.include_router(parcelles.router)
+app.include_router(stocks.router)
+app.include_router(ventes.router)
+app.include_router(chantiers.router)
+app.include_router(rh.router)
+app.include_router(flotte.router)
+app.include_router(crm.router)
+app.include_router(comptabilite.router)
+app.include_router(communication.router)
+app.include_router(ia.router)
+app.include_router(export.router)
+app.include_router(zapier.router)
+app.include_router(calendrier.router)
+app.include_router(pilotage.router)
 
 
 @app.get("/", tags=["root"])
@@ -107,7 +108,7 @@ def read_root():
         "modules": [
             "animaux", "parcelles", "stocks", "ventes", "chantiers",
             "rh", "flotte", "crm", "comptabilite", "communication", 
-            "ia", "export", "zapier", "calendrier"
+            "ia", "export", "zapier", "calendrier", "pilotage"
         ],
         "version": "2.0.0"
     }
