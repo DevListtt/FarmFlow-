@@ -1,4 +1,4 @@
-# FarmFlow - Propositions fonctionnelles
+# FarmFlow — Propositions fonctionnelles
 
 Cette roadmap précise les fonctions à prioriser pour transformer FarmFlow en environnement de pilotage agricole comparable à un Odoo spécialisé ferme.
 
