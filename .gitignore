@@ -1,0 +1,10 @@
+# Frontend dependencies and build artifacts
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.env.local
+
+# Python caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
