@@ -53,6 +53,17 @@ class Settings(BaseSettings):
     # API Externes
     WEATHER_API_KEY: Optional[str] = os.getenv("WEATHER_API_KEY")
     ZAPIER_WEBHOOK_URL: Optional[str] = os.getenv("ZAPIER_WEBHOOK_URL")
+
+    # Banque / synchronisation bancaire
+    BANK_SYNC_PROVIDER: Optional[str] = os.getenv("BANK_SYNC_PROVIDER")
+    BANK_SYNC_CLIENT_ID: Optional[str] = os.getenv("BANK_SYNC_CLIENT_ID")
+    BANK_SYNC_CLIENT_SECRET: Optional[str] = os.getenv("BANK_SYNC_CLIENT_SECRET")
+    BANK_ALERT_MIN_BALANCE: float = float(os.getenv("BANK_ALERT_MIN_BALANCE", 0))
+
+    # IA / assistant contextualisé
+    AI_PROVIDER: Optional[str] = os.getenv("AI_PROVIDER")
+    AI_API_KEY: Optional[str] = os.getenv("AI_API_KEY")
+    AI_MODEL: Optional[str] = os.getenv("AI_MODEL")
     
     # Stockage de fichiers
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "/app/uploads")

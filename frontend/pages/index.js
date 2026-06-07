@@ -1,231 +1,282 @@
 import Head from 'next/head'
+import Link from 'next/link'
 import Layout from '../components/Layout'
 import { useQuery } from 'react-query'
 import axios from 'axios'
+import { FiBarChart2, FiCreditCard, FiDatabase, FiFileText, FiLayers, FiZap } from 'react-icons/fi'
 
-// Configuration de l'API
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
-// Fonction pour récupérer les statistiques
-const fetchStats = async () => {
-  try {
-    const response = await axios.get(`${API_URL}/`)
-    return response.data
-  } catch (error) {
-    console.error('Erreur lors de la récupération des statistiques:', error)
-    return null
-  }
+const fetchPilotage = async () => {
+  const response = await axios.get(`${API_URL}/pilotage/dashboard`)
+  return response.data
 }
 
-// Composant de statistiques
-const StatsCard = ({ title, value, icon, color }) => (
+const fallbackPilotage = {
+  nom: 'FarmFlow Pilotage',
+  vision: 'Un environnement type Odoo, spécialisé ferme, réunissant technique, économie, banque, caisse, IA et conformité.',
+  kpis: [
+    { label: 'Ateliers suivis', value: 8, unit: 'ateliers' },
+    { label: 'Marge brute cible', value: 1240, unit: '€/ha' },
+    { label: 'Alertes trésorerie', value: 3, unit: 'alertes' },
+    { label: 'Exports prêts', value: 6, unit: 'formats' },
+  ],
+  espaces: [
+    {
+      code: 'technique',
+      titre: 'Technique ferme',
+      description: 'Animaux, parcelles, cultures, stocks, interventions, flotte et IoT.',
+      statut: 'socle disponible',
+    },
+    {
+      code: 'economie',
+      titre: 'Économie & marges',
+      description: 'Marge brute par atelier, simulateurs, prix de revient et écarts budget/réel.',
+      statut: 'préparé',
+    },
+    {
+      code: 'caisse',
+      titre: 'Caisse & ventes directes',
+      description: 'Tickets, moyens de paiement, clôtures de caisse et rapprochement comptable.',
+      statut: 'préparé',
+    },
+    {
+      code: 'banque',
+      titre: 'Banque & trésorerie',
+      description: 'Synchro bancaire, catégorisation, alertes de flux et prévision de trésorerie.',
+      statut: 'préparé',
+    },
+    {
+      code: 'reglementaire',
+      titre: 'Exports réglementaires',
+      description: 'FEC, journaux, grand livre, balances, TVA et exports techniques traçables.',
+      statut: 'préparé',
+    },
+    {
+      code: 'ia',
+      titre: 'IA agricole',
+      description: 'Assistant, OCR factures, détection d’anomalies, recommandations et synthèses.',
+      statut: 'connecteurs à brancher',
+    },
+  ],
+  prochaines_fonctions: [
+    {
+      priorite: 'P0',
+      titre: 'Restaurer les vrais écrans métier',
+      module: 'frontend',
+      impact: 'remplacer les maquettes par des pages CRUD métier utilisables',
+    },
+    {
+      priorite: 'P0',
+      titre: 'Caisse + ventes + stock',
+      module: 'caisse',
+      impact: 'encaisser, sortir le stock, générer le journal de caisse et préparer la compta',
+    },
+    {
+      priorite: 'P0',
+      titre: 'Marge réelle par atelier',
+      module: 'marges',
+      impact: 'lier interventions, intrants, temps, ventes et aides pour une marge fiable',
+    },
+    {
+      priorite: 'P1',
+      titre: 'Import bancaire et rapprochement',
+      module: 'banque',
+      impact: 'import CSV/OFX, catégorisation, alertes et rapprochement facture/paiement',
+    },
+  ],
+  alertes: [
+    {
+      niveau: 'warning',
+      titre: 'Décaissement carburant élevé',
+      description: 'Flux carburant supérieur au budget mensuel simulé.',
+    },
+    {
+      niveau: 'info',
+      titre: 'Export comptable à valider',
+      description: 'Préparer FEC, journaux et pièces justificatives avant clôture.',
+    },
+  ],
+}
+
+const colorClasses = {
+  primary: 'bg-primary-100 text-primary-700',
+  secondary: 'bg-secondary-100 text-secondary-700',
+  success: 'bg-success-100 text-success-700',
+  warning: 'bg-warning-100 text-warning-800',
+  danger: 'bg-danger-100 text-danger-700',
+}
+
+const icons = {
+  technique: FiLayers,
+  economie: FiBarChart2,
+  caisse: FiCreditCard,
+  banque: FiDatabase,
+  reglementaire: FiFileText,
+  ia: FiZap,
+}
+
+const KpiCard = ({ label, value, unit, color = 'primary' }) => (
   <div className="card p-6 animate-fade-in">
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-sm font-medium text-gray-500">{title}</p>
-        <p className="text-3xl font-bold text-gray-900 mt-1">{value}</p>
-      </div>
-      <div className={`p-3 rounded-full bg-${color}-100 text-${color}-600`}>
-        {icon}
-      </div>
+    <p className="text-sm font-medium text-brand-muted">{label}</p>
+    <div className="mt-3 flex items-end gap-2">
+      <span className="text-3xl font-bold text-brand-text">{value}</span>
+      <span className="pb-1 text-sm text-brand-muted">{unit}</span>
     </div>
+    <div className={`mt-4 h-2 rounded-full ${colorClasses[color] || colorClasses.primary}`} />
   </div>
 )
 
-// Composant de module
-const ModuleCard = ({ title, description, icon, href }) => (
-  <a
-    href={href}
-    className="card p-6 hover:shadow-md transition-shadow duration-200 animate-fade-in"
-  >
-    <div className="flex items-center space-x-4">
-      <div className="p-3 rounded-full bg-primary-100 text-primary-600">
-        {icon}
-      </div>
-      <div className="flex-1">
-        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-        <p className="text-sm text-gray-500 mt-1">{description}</p>
+const WorkspaceCard = ({ espace }) => {
+  const Icon = icons[espace.code] || FiLayers
+
+  return (
+  <article id={espace.code} className="card p-6 animate-fade-in">
+    <div className="flex items-start justify-between gap-4">
+      <div className="flex items-center gap-3">
+        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-primary-50 text-primary-600">
+          <Icon className="h-5 w-5" aria-hidden="true" />
+        </span>
+        <div>
+          <h3 className="text-lg font-semibold text-brand-text">{espace.titre}</h3>
+          <span className="badge badge-primary mt-1">{espace.statut}</span>
+        </div>
       </div>
     </div>
-  </a>
-)
-
-// Icons (simplifiés)
-const Icons = {
-  animals: '🐄',
-  parcelles: '🌾',
-  stocks: '📦',
-  ventes: '💰',
-  chantiers: '🚜',
-  rh: '👥',
-  flotte: '🚗',
-  crm: '🤝',
-  comptabilite: '📊',
-  communication: '📧',
-  ia: '🤖',
-  calendrier: '📅'
+    <p className="mt-4 text-sm leading-6 text-brand-muted">{espace.description}</p>
+  </article>
+  )
 }
 
-// Page principale
-export default function Home() {
-  const { data: stats, isLoading } = useQuery('stats', fetchStats)
+const AlertCard = ({ alerte }) => {
+  const classes = {
+    success: 'border-success-200 bg-success-50 text-success-900',
+    warning: 'border-warning-200 bg-warning-50 text-warning-900',
+    info: 'border-primary-200 bg-primary-50 text-primary-900',
+    critical: 'border-danger-200 bg-danger-50 text-danger-900',
+  }
 
-  // Modules disponibles
-  const modules = [
-    {
-      title: 'Animaux',
-      description: 'Gestion de l\'élevage avec RFID',
-      icon: Icons.animals,
-      href: '/animaux'
-    },
-    {
-      title: 'Parcelles',
-      description: 'Gestion des cultures et itinéraires techniques',
-      icon: Icons.parcelles,
-      href: '/parcelles'
-    },
-    {
-      title: 'Stocks',
-      description: 'Gestion des semences, engrais, phytos',
-      icon: Icons.stocks,
-      href: '/stocks'
-    },
-    {
-      title: 'Ventes',
-      description: 'Gestion des ventes, devis et factures',
-      icon: Icons.ventes,
-      href: '/ventes'
-    },
-    {
-      title: 'Chantiers',
-      description: 'Gestion des chantiers et équipements',
-      icon: Icons.chantiers,
-      href: '/chantiers'
-    },
-    {
-      title: 'RH',
-      description: 'Gestion des employés et paie',
-      icon: Icons.rh,
-      href: '/rh'
-    },
-    {
-      title: 'Flotte',
-      description: 'Gestion des véhicules et carburant',
-      icon: Icons.flotte,
-      href: '/flotte'
-    },
-    {
-      title: 'CRM',
-      description: 'Gestion des clients et prospects',
-      icon: Icons.crm,
-      href: '/crm'
-    },
-    {
-      title: 'Comptabilité',
-      description: 'Gestion comptable complète',
-      icon: Icons.comptabilite,
-      href: '/comptabilite'
-    },
-    {
-      title: 'Communication',
-      description: 'Campagnes mail, SMS, WhatsApp',
-      icon: Icons.communication,
-      href: '/communication'
-    },
-    {
-      title: 'IA',
-      description: 'Analyse prédictive et chatbot',
-      icon: Icons.ia,
-      href: '/ia'
-    },
-    {
-      title: 'Calendrier',
-      description: 'Événements et rappels',
-      icon: Icons.calendrier,
-      href: '/calendrier'
-    }
-  ]
+  return (
+    <div className={`rounded-xl border p-4 ${classes[alerte.niveau] || classes.info}`}>
+      <p className="font-semibold">{alerte.titre}</p>
+      <p className="mt-1 text-sm opacity-80">{alerte.description}</p>
+    </div>
+  )
+}
+
+export default function Home() {
+  const { data, isLoading, isError } = useQuery('pilotage-dashboard', fetchPilotage)
+  const pilotage = data || fallbackPilotage
 
   return (
     <Layout>
       <Head>
-        <title>FarmFlow - ERP Agricole Open Source</title>
-        <meta name="description" content="FarmFlow est un ERP agricole complet pour gérer votre exploitation" />
+        <title>FarmFlow — Pilotage agricole</title>
+        <meta
+          name="description"
+          content="FarmFlow centralise les aspects techniques, économiques, bancaires, IA et réglementaires de la ferme."
+        />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">
-          Bienvenue sur <span className="text-primary-600">FarmFlow</span>
-        </h1>
-        <p className="text-gray-500 mt-2">
-          ERP Agricole Open Source - Version 2.0
-        </p>
-      </div>
-
-      {/* Statistiques */}
-      {isLoading ? (
-        <div className="flex justify-center items-center h-32">
-          <div className="spinner"></div>
+      <section className="mb-8 overflow-hidden rounded-2xl bg-gradient-to-br from-brand-navy via-primary-700 to-brand-cobalt p-8 text-white shadow-soft">
+        <div className="max-w-4xl">
+          <p className="text-sm font-semibold uppercase tracking-wide text-primary-100">Le cockpit numérique des fermes modernes</p>
+          <h1 className="mt-3 font-display text-3xl font-extrabold tracking-tight sm:text-5xl"><span className="text-white">Farm</span><span className="text-primary-300">Flow</span></h1>
+          <p className="mt-2 text-lg font-semibold text-primary-100">Toute votre ferme. Un seul flux.</p>
+          <p className="mt-4 max-w-3xl text-base leading-7 text-primary-50">{pilotage.vision}</p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <Link href="/marges" className="btn btn-secondary">Simuler les marges</Link>
+            <Link href="/banque" className="btn border-white/30 text-white hover:bg-white/10">Voir la trésorerie</Link>
+          </div>
         </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <StatsCard
-            title="Modules"
-            value={stats?.modules?.length || 12}
-            icon={Icons.ia}
-            color="primary"
-          />
-          <StatsCard
-            title="Version"
-            value={stats?.version || "2.0.0"}
-            icon="📋"
-            color="secondary"
-          />
-          <StatsCard
-            title="API Status"
-            value={stats ? "✅" : "❌"}
-            icon="🔌"
-            color="success"
-          />
-          <StatsCard
-            title="Documentation"
-            value="📖"
-            icon="📚"
-            color="warning"
-          />
+      </section>
+
+      {isError && (
+        <div className="mb-6 rounded-xl border border-warning-200 bg-warning-50 p-4 text-sm text-warning-900">
+          API indisponible : affichage de la maquette de pilotage locale.
         </div>
       )}
 
-      {/* Modules */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold text-gray-900 mb-4">
-          Modules disponibles
-        </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {modules.map((module, index) => (
-            <ModuleCard key={index} {...module} />
+      {isLoading ? (
+        <div className="flex h-32 items-center justify-center">
+          <div className="spinner" />
+        </div>
+      ) : (
+        <div className="mb-8 grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {pilotage.kpis.map((kpi, index) => (
+            <KpiCard
+              key={kpi.label}
+              {...kpi}
+              color={['primary', 'success', 'warning', 'secondary'][index]}
+            />
           ))}
         </div>
-      </div>
+      )}
 
-      {/* CTA */}
-      <div className="card p-8 text-center">
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-          Prêt à commencer ?
-        </h3>
-        <p className="text-gray-500 mb-4">
-          Explorez les différents modules pour gérer votre exploitation agricole.
-        </p>
-        <a
-          href="/animaux"
-          className="btn btn-primary inline-flex items-center space-x-2"
-        >
-          <span>Commencer avec les animaux</span>
-          <span>→</span>
-        </a>
-      </div>
+      <section className="mb-8">
+        <div className="mb-4 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-brand-text">Espaces de travail</h2>
+            <p className="text-sm text-brand-muted">Une ferme pilotée par atelier, flux, marge et obligation réglementaire.</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {pilotage.espaces.map((espace) => (
+            <WorkspaceCard key={espace.code} espace={espace} />
+          ))}
+        </div>
+      </section>
+
+
+      <section className="card mb-8 p-6">
+        <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-brand-text">Propositions prioritaires</h2>
+            <p className="text-sm text-brand-muted">Les prochaines fonctions à livrer pour rendre FarmFlow vraiment exploitable.</p>
+          </div>
+          <a href="/api/pilotage/roadmap" className="text-sm font-medium text-primary-600 hover:text-primary-700">API roadmap →</a>
+        </div>
+        <div className="grid gap-3 md:grid-cols-2">
+          {(pilotage.prochaines_fonctions || []).slice(0, 4).map((fonction) => (
+            <article key={`${fonction.priorite}-${fonction.titre}`} className="rounded-xl border border-brand-border p-4">
+              <div className="flex items-center justify-between gap-3">
+                <span className="badge badge-warning">{fonction.priorite}</span>
+                <span className="text-xs uppercase tracking-wide text-brand-muted">{fonction.module}</span>
+              </div>
+              <h3 className="mt-3 font-semibold text-brand-text">{fonction.titre}</h3>
+              <p className="mt-2 text-sm leading-6 text-brand-muted">{fonction.impact}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-6 xl:grid-cols-3">
+        <div className="card p-6 xl:col-span-2">
+          <h2 className="text-xl font-semibold text-brand-text">Chaîne de pilotage prévue</h2>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            {[
+              'Saisie technique terrain → coûts par intervention',
+              'Caisse et ventes → comptabilité et stock',
+              'Banque synchronisée → catégorisation et alertes',
+              'Exports réglementaires → expert-comptable et obligations',
+            ].map((item) => (
+              <div key={item} className="rounded-xl border border-brand-border p-4 text-sm text-brand-text">
+                {item}
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="card p-6">
+          <h2 className="text-xl font-semibold text-brand-text">Alertes flux</h2>
+          <div className="mt-4 space-y-3">
+            {pilotage.alertes.map((alerte) => (
+              <AlertCard key={alerte.titre} alerte={alerte} />
+            ))}
+          </div>
+        </div>
+      </section>
     </Layout>
   )
 }
