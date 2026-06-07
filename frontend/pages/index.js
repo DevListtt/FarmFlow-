@@ -171,7 +171,7 @@ export default function Home() {
   return (
     <Layout>
       <Head>
-        <title>FarmFlow - Pilotage agricole</title>
+        <title>FarmFlow — Pilotage agricole</title>
         <meta
           name="description"
           content="FarmFlow centralise les aspects techniques, économiques, bancaires, IA et réglementaires de la ferme."
@@ -239,10 +239,10 @@ export default function Home() {
         </div>
         <div className="grid gap-3 md:grid-cols-2">
           {(pilotage.prochaines_fonctions || []).slice(0, 4).map((fonction) => (
-            <article key={`${fonction.priorite}-${fonction.titre}`} className="rounded-xl border border-gray-200 p-4">
+            <article key={`${fonction.priorite}-${fonction.titre}`} className="rounded-xl border border-brand-border p-4">
               <div className="flex items-center justify-between gap-3">
                 <span className="badge badge-warning">{fonction.priorite}</span>
-                <span className="text-xs uppercase tracking-wide text-gray-400">{fonction.module}</span>
+                <span className="text-xs uppercase tracking-wide text-brand-muted">{fonction.module}</span>
               </div>
               <h3 className="mt-3 font-semibold text-brand-text">{fonction.titre}</h3>
               <p className="mt-2 text-sm leading-6 text-brand-muted">{fonction.impact}</p>
@@ -261,7 +261,7 @@ export default function Home() {
               'Banque synchronisée → catégorisation et alertes',
               'Exports réglementaires → expert-comptable et obligations',
             ].map((item) => (
-              <div key={item} className="rounded-xl border border-gray-200 p-4 text-sm text-gray-700">
+              <div key={item} className="rounded-xl border border-brand-border p-4 text-sm text-brand-text">
                 {item}
               </div>
             ))}

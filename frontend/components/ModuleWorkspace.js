@@ -38,7 +38,7 @@ export default function ModuleWorkspace({ title, subtitle, icon: Icon, status = 
           <h2 className="text-xl font-semibold text-brand-text">Priorités métier</h2>
           <div className="mt-4 grid gap-3 md:grid-cols-2">
             {priorities.map((priority) => (
-              <div key={priority} className="rounded-xl border border-gray-200 p-4 text-sm text-gray-700">
+              <div key={priority} className="rounded-xl border border-brand-border p-4 text-sm text-brand-text">
                 {priority}
               </div>
             ))}
@@ -49,7 +49,7 @@ export default function ModuleWorkspace({ title, subtitle, icon: Icon, status = 
           <h2 className="text-xl font-semibold text-brand-text">Indicateurs</h2>
           <div className="mt-4 space-y-3">
             {kpis.map((kpi) => (
-              <div key={kpi.label} className="flex items-center justify-between rounded-xl bg-gray-50 p-3">
+              <div key={kpi.label} className="flex items-center justify-between rounded-xl bg-brand-surface p-3">
                 <span className="text-sm text-brand-muted">{kpi.label}</span>
                 <span className="font-semibold text-brand-text">{kpi.value}</span>
               </div>

@@ -843,6 +843,6 @@ Pour toute question ou problème, veuillez ouvrir une issue sur GitHub :
 
 ---
 
-**FarmFlow - ERP Agricole Open Source**
+**FarmFlow — ERP Agricole Open Source**
 
 *Gérez votre exploitation agricole avec efficacité et simplicité.*

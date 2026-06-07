@@ -78,7 +78,6 @@ class EncaissementRequest(BaseModel):
     observations: Optional[str] = None
 
 
-
 def _prochaines_fonctions() -> List[Dict[str, Any]]:
     return [
         {
