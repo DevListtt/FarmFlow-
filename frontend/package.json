@@ -1,7 +1,7 @@
 {
   "name": "farmflow-frontend",
   "version": "2.0.0",
-  "description": "FarmFlow - ERP Agricole Open Source",
+  "description": "FarmFlow — ERP Agricole Open Source",
   "private": true,
   "scripts": {
     "dev": "next dev",
