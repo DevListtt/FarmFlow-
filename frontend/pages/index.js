@@ -39,7 +39,7 @@ const fetchPilotage = async () => {
 
 const fallbackPilotage = {
   nom: 'FarmFlow ERP agricole',
-  vision: 'Un environnement modulaire type Odoo, specialise ferme, reunissant production, commerce, finance, conformite, IA et automatisations.',
+  vision: 'Un environnement modulaire specialise ferme, reunissant production, commerce, finance, conformite, IA et automatisations.',
   kpis: [
     { label: 'Applications metier', value: farmflowApps.length, unit: 'apps' },
     { label: 'Workflows transverses', value: fallbackWorkflows.length, unit: 'flux' },
