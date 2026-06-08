@@ -1,6 +1,6 @@
 # FarmFlow
 
-FarmFlow est un ERP agricole open source inspire d'Odoo, adapte aux besoins des exploitations agricoles : production, elevage, stocks, ventes, caisse, achats, comptabilite, banque, marges, conformite, IA et integrations.
+FarmFlow est un ERP agricole open source adapte aux besoins des exploitations agricoles : production, elevage, stocks, ventes, caisse, achats, comptabilite, banque, marges, conformite, IA et integrations.
 
 ## Objectif
 
@@ -38,7 +38,7 @@ Le projet contient :
 ## Documentation
 
 - [Documentation principale](docs/README.md)
-- [Vision Odoo agricole](docs/vision-odoo-agricole.md)
+- [Vision ERP agricole](docs/vision-erp-agricole.md)
 
 ## Lancement avec Docker
 
