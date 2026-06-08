@@ -55,7 +55,8 @@ const categoryColors = {
 
 const AppTile = ({ app }) => {
   const Icon = iconMap[app.code] || FiGrid
-  const detailRoute = app.route?.startsWith('/apps/') || app.route === '/' ? app.route : `/apps/${app.code}`
+  const openRoute = app.route || `/apps/${app.code}`
+  const detailRoute = `/apps/${app.code}`
 
   return (
     <article className="card flex h-full flex-col p-5">
@@ -77,12 +78,12 @@ const AppTile = ({ app }) => {
         ))}
       </div>
       <div className="mt-5 flex gap-2">
-        <Link href={detailRoute} className="btn btn-primary flex-1 gap-2">
+        <Link href={openRoute} className="btn btn-primary flex-1 gap-2">
           <FiGrid className="h-4 w-4" />
           Ouvrir
         </Link>
-        {detailRoute !== `/apps/${app.code}` && (
-          <Link href={`/apps/${app.code}`} className="btn btn-outline gap-2">
+        {openRoute !== detailRoute && (
+          <Link href={detailRoute} className="btn btn-outline gap-2">
             <FiFileText className="h-4 w-4" />
             Fiche
           </Link>
