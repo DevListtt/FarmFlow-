@@ -8,8 +8,9 @@ from fastapi.openapi.utils import get_openapi
 from .database import engine, Base, init_db
 from .core.config import settings
 from .api import (
-    animaux, parcelles, stocks, ventes, chantiers,
-    rh, flotte, crm, comptabilite, communication, ia, export, zapier, calendrier, pilotage
+    animaux, parcellaire, parcelles, stocks, ventes, chantiers,
+    rh, flotte, crm, comptabilite, communication, ia, export, zapier, calendrier,
+    pilotage_transactionnel, pilotage
 )
 
 # Initialiser la base de données (optionnel, peut être fait via Alembic)
@@ -82,6 +83,7 @@ app.add_middleware(
 
 # Inclure tous les routeurs
 app.include_router(animaux.router)
+app.include_router(parcellaire.router)
 app.include_router(parcelles.router)
 app.include_router(stocks.router)
 app.include_router(ventes.router)
@@ -95,6 +97,7 @@ app.include_router(ia.router)
 app.include_router(export.router)
 app.include_router(zapier.router)
 app.include_router(calendrier.router)
+app.include_router(pilotage_transactionnel.router)
 app.include_router(pilotage.router)
 
 
