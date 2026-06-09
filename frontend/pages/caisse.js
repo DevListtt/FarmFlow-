@@ -1,6 +1,9 @@
 import Head from 'next/head'
 import { useMemo, useState } from 'react'
+import { useMutation, useQuery } from 'react-query'
+import axios from 'axios'
 import {
+  FiCheckCircle,
   FiCreditCard,
   FiDollarSign,
   FiMinus,
@@ -13,31 +16,57 @@ import {
 } from 'react-icons/fi'
 import Layout from '../components/Layout'
 
-const products = [
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+
+const fallbackProducts = [
   { id: 'panier-legumes', name: 'Panier legumes', category: 'Maraichage', price: 22, tax: 5.5, stock: 42, unit: 'piece' },
   { id: 'oeufs-x12', name: 'Oeufs plein air x12', category: 'Elevage', price: 4.8, tax: 5.5, stock: 68, unit: 'boite' },
   { id: 'farine-1kg', name: 'Farine ferme 1kg', category: 'Transformation', price: 3.4, tax: 5.5, stock: 35, unit: 'sac' },
   { id: 'colis-boeuf', name: 'Colis boeuf 5kg', category: 'Elevage', price: 78, tax: 5.5, stock: 9, unit: 'colis' },
-  { id: 'jus-pomme', name: 'Jus de pomme 1L', category: 'Verger', price: 3.9, tax: 5.5, stock: 120, unit: 'bouteille' },
-  { id: 'miel-500', name: 'Miel 500g', category: 'Ruche', price: 8.5, tax: 5.5, stock: 27, unit: 'pot' },
-  { id: 'plants-tomate', name: 'Plants tomate', category: 'Plants', price: 2.2, tax: 10, stock: 180, unit: 'plant' },
-  { id: 'foin-botte', name: 'Foin petite botte', category: 'Fourrage', price: 5.5, tax: 10, stock: 54, unit: 'botte' },
 ]
 
-const paymentMethods = [
-  { code: 'card', label: 'TPE', icon: FiCreditCard },
-  { code: 'cash', label: 'Especes', icon: FiDollarSign },
-  { code: 'transfer', label: 'Virement', icon: FiRefreshCcw },
-]
+const fallbackSession = {
+  statut: 'ouverte',
+  journal: 'Boutique ferme',
+  fond_initial: 250,
+  tickets: 38,
+  ca_jour: 1284,
+  panier_moyen: 33.8,
+  ecart_caisse: 0,
+}
 
-const sessions = [
-  { label: 'Tickets', value: 38 },
-  { label: 'CA jour', value: '1 284 EUR' },
-  { label: 'Panier moy.', value: '33,80 EUR' },
-  { label: 'Ecart caisse', value: '0,00 EUR' },
-]
+const methodIcons = {
+  card: FiCreditCard,
+  cash: FiDollarSign,
+  transfer: FiRefreshCcw,
+}
 
-const formatCurrency = (value) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(value)
+const formatCurrency = (value) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(value || 0)
+
+const normalizeProduct = (product) => ({
+  id: product.code || product.id,
+  name: product.nom || product.name,
+  category: product.categorie || product.category || 'Produit',
+  price: product.prix ?? product.price,
+  tax: product.tva ?? product.tax ?? 5.5,
+  stock: product.stock ?? 0,
+  unit: product.unite || product.unit || 'unite',
+})
+
+const fetchCaisse = async () => {
+  const response = await axios.get(`${API_URL}/pilotage/caisse`)
+  return response.data
+}
+
+const createTicket = async (payload) => {
+  const response = await axios.post(`${API_URL}/pilotage/caisse/tickets`, payload)
+  return response.data
+}
+
+const closeSession = async (payload) => {
+  const response = await axios.post(`${API_URL}/pilotage/caisse/cloturer`, payload)
+  return response.data
+}
 
 export default function CaissePage() {
   const [cart, setCart] = useState([])
@@ -45,12 +74,45 @@ export default function CaissePage() {
   const [customer, setCustomer] = useState('Client comptoir')
   const [discount, setDiscount] = useState(0)
   const [paymentMethod, setPaymentMethod] = useState('card')
+  const [lastTicket, setLastTicket] = useState(null)
+  const [closeResult, setCloseResult] = useState(null)
+
+  const { data, isError } = useQuery('pilotage-caisse', fetchCaisse, {
+    staleTime: 30000,
+  })
+
+  const ticketMutation = useMutation(createTicket, {
+    onSuccess: (ticket) => {
+      setLastTicket(ticket)
+      setCart([])
+    },
+  })
+
+  const closeMutation = useMutation(closeSession, {
+    onSuccess: (result) => setCloseResult(result),
+  })
+
+  const products = useMemo(() => (data?.produits_exemple || fallbackProducts).map(normalizeProduct), [data])
+  const session = data?.session || fallbackSession
+  const customers = data?.clients || ['Client comptoir', 'Restaurant Les Tilleuls', 'AMAP village', 'Client pro facture']
+  const paymentMethods = data?.moyens_paiement || [
+    { code: 'card', label: 'TPE' },
+    { code: 'cash', label: 'Especes' },
+    { code: 'transfer', label: 'Virement' },
+  ]
+
+  const sessions = [
+    { label: 'Tickets', value: session.tickets },
+    { label: 'CA jour', value: formatCurrency(session.ca_jour) },
+    { label: 'Panier moy.', value: formatCurrency(session.panier_moyen) },
+    { label: 'Ecart caisse', value: formatCurrency(session.ecart_caisse) },
+  ]
 
   const filteredProducts = useMemo(() => {
     const search = query.trim().toLowerCase()
     if (!search) return products
     return products.filter((product) => `${product.name} ${product.category}`.toLowerCase().includes(search))
-  }, [query])
+  }, [products, query])
 
   const totals = useMemo(() => {
     const subtotal = cart.reduce((sum, line) => sum + line.price * line.quantity, 0)
@@ -67,11 +129,12 @@ export default function CaissePage() {
       discountAmount,
       tax,
       total: taxable,
-      marginSignal: taxable * 0.42,
+      marginSignal: lastTicket?.totaux?.marge ?? taxable * 0.42,
     }
-  }, [cart, discount])
+  }, [cart, discount, lastTicket])
 
   const addProduct = (product) => {
+    setLastTicket(null)
     setCart((current) => {
       const existing = current.find((line) => line.id === product.id)
       if (existing) {
@@ -87,7 +150,32 @@ export default function CaissePage() {
       .filter((line) => line.quantity > 0))
   }
 
-  const clearCart = () => setCart([])
+  const clearCart = () => {
+    setCart([])
+    setLastTicket(null)
+  }
+
+  const submitTicket = () => {
+    ticketMutation.mutate({
+      client: customer,
+      moyen_paiement: paymentMethod,
+      remise_percent: discount,
+      lignes: cart.map((line) => ({
+        code: line.id,
+        nom: line.name,
+        quantite: line.quantity,
+        prix_unitaire: line.price,
+        tva: line.tax,
+      })),
+    })
+  }
+
+  const submitClose = () => {
+    closeMutation.mutate({
+      fond_reel: session.fond_initial + session.ca_jour,
+      commentaire: 'Cloture lancee depuis la caisse',
+    })
+  }
 
   return (
     <Layout>
@@ -115,15 +203,23 @@ export default function CaissePage() {
               ))}
             </div>
           </div>
+          {isError && <p className="mt-4 text-sm text-amber-700">Mode local actif : donnees de secours chargees.</p>}
         </div>
 
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-5">
-          <p className="text-sm font-semibold text-emerald-900">Session ouverte</p>
-          <p className="mt-2 text-sm leading-6 text-emerald-800">Journal boutique - caisse principale - fond initial 250 EUR.</p>
-          <button className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900">
+          <p className="text-sm font-semibold text-emerald-900">Session {session.statut}</p>
+          <p className="mt-2 text-sm leading-6 text-emerald-800">
+            {session.journal} - fond initial {formatCurrency(session.fond_initial)}.
+          </p>
+          <button
+            onClick={submitClose}
+            disabled={closeMutation.isLoading}
+            className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-emerald-800 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-900 disabled:cursor-wait disabled:bg-emerald-300"
+          >
             <FiPrinter className="h-4 w-4" />
-            Cloturer la session
+            {closeMutation.isLoading ? 'Cloture...' : 'Cloturer la session'}
           </button>
+          {closeResult && <p className="mt-3 text-xs font-medium text-emerald-900">Cloture preparee, ecart {formatCurrency(closeResult.ecart)}.</p>}
         </div>
       </section>
 
@@ -142,10 +238,7 @@ export default function CaissePage() {
                 />
               </label>
               <select value={customer} onChange={(event) => setCustomer(event.target.value)} className="input">
-                <option>Client comptoir</option>
-                <option>Restaurant Les Tilleuls</option>
-                <option>AMAP village</option>
-                <option>Client pro facture</option>
+                {customers.map((item) => <option key={item}>{item}</option>)}
               </select>
             </div>
           </div>
@@ -181,6 +274,15 @@ export default function CaissePage() {
           </div>
 
           <div className="max-h-[420px] space-y-3 overflow-y-auto p-4">
+            {lastTicket && (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900">
+                <div className="flex items-center gap-2 font-semibold">
+                  <FiCheckCircle className="h-4 w-4" />
+                  Ticket valide
+                </div>
+                <p className="mt-1">{lastTicket.ticket_id} - {formatCurrency(lastTicket.totaux.total)}</p>
+              </div>
+            )}
             {cart.length === 0 ? (
               <div className="rounded-lg border border-dashed border-slate-300 p-6 text-center text-sm text-slate-500">
                 Ajoute un produit pour commencer un ticket.
@@ -232,7 +334,7 @@ export default function CaissePage() {
 
             <div className="mt-4 grid grid-cols-3 gap-2">
               {paymentMethods.map((method) => {
-                const Icon = method.icon
+                const Icon = methodIcons[method.code] || FiCreditCard
                 const active = paymentMethod === method.code
                 return (
                   <button
@@ -248,11 +350,13 @@ export default function CaissePage() {
             </div>
 
             <button
-              disabled={!cart.length}
+              onClick={submitTicket}
+              disabled={!cart.length || ticketMutation.isLoading}
               className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-lg bg-slate-950 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800 disabled:cursor-not-allowed disabled:bg-slate-300"
             >
-              Encaisser {formatCurrency(totals.total)}
+              {ticketMutation.isLoading ? 'Encaissement...' : `Encaisser ${formatCurrency(totals.total)}`}
             </button>
+            {ticketMutation.isError && <p className="mt-3 text-sm text-red-700">Encaissement refuse, verifie le panier.</p>}
           </div>
         </aside>
       </section>
