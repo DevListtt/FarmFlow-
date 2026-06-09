@@ -25,7 +25,6 @@ import {
   categoryByCode,
   farmflowApps,
   groupAppsByCategory,
-  moduleCategories,
   roles as fallbackRoles,
   workflows as fallbackWorkflows,
 } from '../lib/farmflowModules'
@@ -145,44 +144,21 @@ const KpiCard = ({ label, value, unit, index }) => {
 
 const AppCard = ({ app }) => {
   const Icon = iconMap[app.code] || FiGrid
-  const category = categoryByCode[app.category] || moduleCategories[0]
+  const category = categoryByCode[app.category] || { label: 'Application' }
   const className = categoryClasses[app.category] || categoryClasses.socle
   const openRoute = app.route || `/apps/${app.code}`
-  const detailRoute = `/apps/${app.code}`
 
   return (
-    <article className="card flex h-full flex-col p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border ${className}`}>
-          <Icon className="h-5 w-5" />
-        </div>
-        <span className="badge badge-secondary text-right">{app.status}</span>
-      </div>
-      <div className="mt-4 flex-1">
-        <p className="text-xs font-semibold uppercase text-gray-400">{category.label}</p>
-        <h3 className="mt-1 text-lg font-semibold leading-tight text-gray-950">{app.name}</h3>
-        <p className="mt-3 text-sm leading-6 text-gray-600">{app.description}</p>
-      </div>
-      <div className="mt-4 flex flex-wrap gap-2">
-        {app.capabilities.slice(0, 3).map((capability) => (
-          <span key={capability} className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-600">
-            {capability}
-          </span>
-        ))}
-      </div>
-      <div className="mt-5 flex gap-2">
-        <Link href={openRoute} className="btn btn-primary min-w-0 flex-1 gap-2">
-          <FiGrid className="h-4 w-4" />
-          Ouvrir
-        </Link>
-        {openRoute !== detailRoute && (
-          <Link href={detailRoute} className="btn btn-outline gap-2">
-            <FiFileText className="h-4 w-4" />
-            Fiche
-          </Link>
-        )}
-      </div>
-    </article>
+    <Link
+      href={openRoute}
+      className="group flex min-h-[132px] flex-col items-center justify-center rounded-lg border border-slate-200 bg-white p-4 text-center shadow-sm transition hover:-translate-y-0.5 hover:border-emerald-300 hover:bg-emerald-50 hover:shadow-md"
+      title={category.label}
+    >
+      <span className={`flex h-14 w-14 items-center justify-center rounded-lg border transition group-hover:scale-105 ${className}`}>
+        <Icon className="h-6 w-6" />
+      </span>
+      <span className="mt-3 text-sm font-semibold leading-tight text-slate-950">{app.name}</span>
+    </Link>
   )
 }
 
@@ -272,10 +248,9 @@ export default function Home() {
       )}
 
       <section className="mb-8">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="mx-auto mb-4 flex max-w-6xl flex-col gap-3 text-center sm:flex-row sm:items-end sm:justify-between sm:text-left">
           <div>
             <h2 className="text-xl font-semibold text-gray-950">Applications FarmFlow</h2>
-            <p className="text-sm text-gray-500">Modules metier connectes par donnees, workflows et roles.</p>
           </div>
           <Link href="/apps" className="btn btn-outline gap-2 self-start sm:self-auto">
             <FiGrid className="h-4 w-4" />
@@ -283,14 +258,14 @@ export default function Home() {
           </Link>
         </div>
 
-        <div className="space-y-6">
+        <div className="mx-auto max-w-6xl space-y-6">
           {groupedApps.map((category) => (
             <div key={category.code}>
-              <div className="mb-3 flex items-center gap-3">
+              <div className="mb-3 flex items-center justify-center gap-3">
                 <span className={`h-3 w-3 rounded ${categoryClasses[category.code] || categoryClasses.socle}`} />
                 <h3 className="text-sm font-semibold uppercase tracking-wide text-gray-500">{category.label}</h3>
               </div>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6">
                 {category.apps.map((app) => (
                   <AppCard key={app.code} app={app} />
                 ))}
