@@ -29,7 +29,11 @@ class ScenarioMargeRequest(BaseModel):
     alimentation: float = Field(0, ge=0)
     carburant: float = Field(0, ge=0)
     main_oeuvre: float = Field(0, ge=0)
+    materiel: float = Field(0, ge=0)
     autres_charges_operationnelles: float = Field(0, ge=0)
+    pertes_percent: float = Field(0, ge=0, le=100)
+    variation_prix_percent: float = Field(0, ge=-100)
+    variation_rendement_percent: float = Field(0, ge=-100)
 
 
 class TransactionBancaire(BaseModel):
@@ -92,18 +96,18 @@ AGRI_APPS: List[Dict[str, Any]] = [
     _app("elevage", "Elevage", "production", "/animaux", "socle disponible", "haute", "Troupeaux, identification, reproduction, sanitaire, lots, mouvements et performances.", ["animaux", "lots", "sanitaire", "reproduction", "RFID"], ["Importer les animaux", "Creer les lots", "Planifier les suivis sanitaires"], ["GET /animaux/", "POST /animaux/", "GET /animaux/{id}/sante"]),
     _app("stocks", "Stocks", "operations", "/stocks", "socle disponible", "haute", "Intrants, aliments, produits finis, lots, seuils, mouvements et valorisation.", ["seuils", "lots", "mouvements", "valorisation", "liaison interventions"], ["Creer les categories", "Saisir stocks initiaux", "Definir les seuils d'alerte"], ["GET /stocks", "GET /stocks/categories", "GET /export/stocks/csv"]),
     _app("achats", "Achats fournisseurs", "commerce", "/apps/achats", "a construire", "haute", "Demandes de prix, commandes, receptions, factures fournisseurs et couts par atelier.", ["devis", "commandes", "receptions", "factures", "couts imputes"], ["Structurer fournisseurs", "Creer modeles de commande", "Lier factures et stocks"], ["POST /achats/commandes", "GET /achats/fournisseurs", "POST /comptabilite/ecritures"]),
-    _app("ventes-caisse", "Ventes & caisse", "commerce", "/ventes", "socle disponible", "haute", "Devis, factures, ventes directes, tickets, paniers, marches et clotures de caisse.", ["devis", "factures", "tickets", "paiements", "cloture journaliere"], ["Configurer produits", "Creer moyens de paiement", "Activer journal de caisse"], ["GET /ventes", "GET /pilotage/caisse", "GET /export/ventes/csv"]),
+    _app("ventes-caisse", "Ventes & caisse", "commerce", "/caisse", "socle disponible", "haute", "Devis, factures, ventes directes, tickets, paniers, marches et clotures de caisse.", ["devis", "factures", "tickets", "paiements", "cloture journaliere"], ["Configurer produits", "Creer moyens de paiement", "Activer journal de caisse"], ["GET /ventes", "GET /pilotage/caisse", "GET /export/ventes/csv"]),
     _app("crm", "CRM agricole", "commerce", "/crm", "socle disponible", "moyenne", "Clients, prospects, distributeurs, circuits courts, contrats et historique commercial.", ["contacts", "segments", "opportunites", "contrats", "relances"], ["Importer clients", "Segmenter circuits", "Creer pipelines de vente"], ["GET /crm/clients", "POST /crm/prospects", "GET /crm/opportunites"]),
     _app("comptabilite", "Comptabilite", "finance", "/comptabilite", "socle disponible", "haute", "Journaux, plan comptable agricole, ecritures, TVA, immobilisations et clotures.", ["journaux", "ecritures", "TVA", "immobilisations", "cloture"], ["Definir exercice", "Configurer journaux", "Importer plan comptable"], ["GET /comptabilite", "POST /comptabilite/ecritures", "GET /pilotage/exports/reglementaires"]),
-    _app("banque-tresorerie", "Banque & tresorerie", "finance", "/apps/banque-tresorerie", "connecteur a brancher", "haute", "Synchronisation bancaire, rapprochement, prevision de tresorerie et alertes de flux.", ["synchro bancaire", "rapprochement", "categorisation", "prevision", "alertes"], ["Choisir connecteur", "Importer historique", "Definir seuils de tresorerie"], ["GET /pilotage/banque", "POST /pilotage/banque/analyser-flux"]),
-    _app("marges", "Marges & prix de revient", "finance", "/apps/marges", "simulateur pret", "haute", "Marge brute par culture, lot animal, produit, canal, seuils et scenarios de prix.", ["marge brute", "prix de revient", "budget/reel", "seuil", "scenario"], ["Definir ateliers", "Imputer charges", "Comparer budget et realise"], ["GET /pilotage/marges", "POST /pilotage/marges/simuler"]),
+    _app("banque-tresorerie", "Banque & tresorerie", "finance", "/sync", "connecteur a brancher", "haute", "Synchronisation bancaire, rapprochement, prevision de tresorerie et alertes de flux.", ["synchro bancaire", "rapprochement", "categorisation", "prevision", "alertes"], ["Choisir connecteur", "Importer historique", "Definir seuils de tresorerie"], ["GET /pilotage/banque", "POST /pilotage/banque/analyser-flux"]),
+    _app("marges", "Marges & prix de revient", "finance", "/marges", "simulateur pret", "haute", "Marge brute par culture, lot animal, produit, canal, seuils et scenarios de prix.", ["marge brute", "prix de revient", "budget/reel", "seuil", "scenario"], ["Definir ateliers", "Imputer charges", "Comparer budget et realise"], ["GET /pilotage/marges", "POST /pilotage/marges/simuler"]),
     _app("flotte-materiel", "Flotte & materiel", "operations", "/flotte", "socle disponible", "moyenne", "Tracteurs, outils, entretiens, carburant, cout horaire et disponibilite chantier.", ["vehicules", "entretiens", "carburant", "cout horaire", "planning"], ["Inventorier materiel", "Programmer entretiens", "Calculer couts horaires"], ["GET /flotte", "POST /flotte/entretiens", "GET /chantiers"]),
     _app("rh", "RH & planning", "operations", "/rh", "socle disponible", "moyenne", "Saisonniers, permanents, temps de travaux, competences, absences et paie preparatoire.", ["employes", "planning", "temps", "absences", "paie"], ["Creer equipes", "Declarer competences", "Lier temps aux chantiers"], ["GET /rh/employes", "GET /rh/conges", "POST /rh/planning"]),
     _app("calendrier", "Calendrier agricole", "operations", "/calendrier", "socle disponible", "moyenne", "Evenements, rappels, fenetres meteo, taches recurrentes et echeances reglementaires.", ["agenda", "rappels", "echeances", "meteo", "recurrence"], ["Importer echeances", "Planifier cultures", "Activer rappels"], ["GET /calendrier", "POST /calendrier/evenements"]),
     _app("documents-reglementaire", "Documents & reglementaire", "conformite", "/apps/documents-reglementaire", "exports prets", "haute", "FEC, journaux, grand livre, balance, TVA, tracabilite technique et pieces justificatives.", ["FEC", "journaux", "grand livre", "balance", "tracabilite", "audit"], ["Parametrer exercice", "Centraliser justificatifs", "Tester exports"], ["GET /pilotage/exports/reglementaires", "GET /export/comptabilite/csv"]),
     _app("ia-agricole", "IA agricole", "plateforme", "/ia", "connecteur a brancher", "moyenne", "Assistant contextualise, OCR factures, anomalies, recommandations et syntheses de ferme.", ["assistant", "OCR", "anomalies", "recommandations", "syntheses"], ["Choisir modele", "Definir donnees autorisees", "Activer journal d'audit"], ["GET /pilotage/ia/preparation", "POST /ia/analyser"]),
     _app("communication", "Communication", "plateforme", "/communication", "socle disponible", "basse", "Email, SMS, WhatsApp, campagnes clients, alertes internes et notifications equipe.", ["campagnes", "notifications", "SMS", "email", "WhatsApp"], ["Configurer canaux", "Creer modeles", "Segmenter destinataires"], ["GET /communication/campagnes", "POST /communication/envoyer"]),
-    _app("integrations", "Integrations & automatisations", "plateforme", "/apps/integrations", "socle zapier", "moyenne", "Zapier, API meteo, paiement, code-barres, etiquettes, IoT et connecteurs externes.", ["Zapier", "meteo", "paiement", "code-barres", "IoT", "webhooks"], ["Lister connecteurs", "Securiser webhooks", "Prioriser automatisations"], ["GET /zapier/triggers", "POST /zapier/webhook"]),
+    _app("integrations", "Integrations & automatisations", "plateforme", "/sync", "socle zapier", "moyenne", "Zapier, API meteo, paiement, code-barres, etiquettes, IoT et connecteurs externes.", ["Zapier", "meteo", "paiement", "code-barres", "IoT", "webhooks"], ["Lister connecteurs", "Securiser webhooks", "Prioriser automatisations"], ["GET /zapier/triggers", "POST /zapier/webhook"]),
 ]
 
 
@@ -304,9 +308,9 @@ def get_operations() -> Dict[str, Any]:
         ],
         "raccourcis": [
             {"label": "Nouvelle intervention", "route": "/chantiers"},
-            {"label": "Encaisser une vente", "route": "/ventes"},
-            {"label": "Analyser les flux", "route": "/apps/banque-tresorerie"},
-            {"label": "Simuler une marge", "route": "/apps/marges"},
+            {"label": "Encaisser une vente", "route": "/caisse"},
+            {"label": "Analyser les flux", "route": "/sync"},
+            {"label": "Simuler une marge", "route": "/marges"},
         ],
     }
 
@@ -316,12 +320,38 @@ def get_caisse() -> Dict[str, Any]:
     """Preparation du module caisse pour vente directe et point de vente agricole."""
     return {
         "objectif": "Encaisser ventes boutique, marches, paniers, animaux ou produits transformes.",
+        "session": {
+            "statut": "ouverte",
+            "journal": "Boutique ferme",
+            "fond_initial": 250,
+            "tickets": 38,
+            "ca_jour": 1284,
+            "panier_moyen": 33.8,
+            "ecart_caisse": 0,
+        },
         "fonctionnalites": [
             "tickets et factures simplifiees",
             "especes, carte bancaire, virement, cheque et avoirs",
             "cloture journaliere avec ecarts de caisse",
             "ventilation automatique vers ventes, TVA et comptabilite",
             "mode hors-ligne a prevoir pour marches et batiments agricoles",
+        ],
+        "produits_exemple": [
+            {"code": "panier-legumes", "nom": "Panier legumes", "prix": 22, "tva": 5.5, "stock": 42},
+            {"code": "oeufs-x12", "nom": "Oeufs plein air x12", "prix": 4.8, "tva": 5.5, "stock": 68},
+            {"code": "colis-boeuf", "nom": "Colis boeuf 5kg", "prix": 78, "tva": 5.5, "stock": 9},
+            {"code": "jus-pomme", "nom": "Jus de pomme 1L", "prix": 3.9, "tva": 5.5, "stock": 120},
+        ],
+        "moyens_paiement": [
+            {"code": "card", "label": "TPE", "compte_attente": "5112"},
+            {"code": "cash", "label": "Especes", "compte_attente": "531"},
+            {"code": "transfer", "label": "Virement", "compte_attente": "5111"},
+        ],
+        "ecritures_automatiques": [
+            "vente -> produit + TVA collectee",
+            "paiement TPE -> compte attente carte",
+            "cloture caisse -> journal de caisse",
+            "sortie stock -> mouvement lot + cout de revient",
         ],
         "controles": ["fond de caisse", "total par moyen de paiement", "ecarts", "journal de caisse"],
         "workflow": "vente-directe-caisse-compta-stock",
@@ -334,9 +364,14 @@ def get_marges() -> Dict[str, Any]:
     return {
         "indicateurs": ["marge brute par culture, lot animal ou atelier", "prix de revient", "seuil de rentabilite", "ecart budget / realise", "sensibilite prix, rendement, intrants et main d'oeuvre"],
         "ateliers_exemple": [
-            {"nom": "Ble tendre", "marge_brute_ha": 1180, "seuil_rentabilite": 182},
-            {"nom": "Maraichage paniers", "marge_brute_ha": 8600, "seuil_rentabilite": 1.95},
-            {"nom": "Bovin allaitant", "marge_brute_tete": 410, "seuil_rentabilite": 1450},
+            {"nom": "Ble tendre", "marge_brute_ha": 1180, "seuil_rentabilite": 182, "risque": "prix marche"},
+            {"nom": "Maraichage paniers", "marge_brute_ha": 8600, "seuil_rentabilite": 1.95, "risque": "main d oeuvre"},
+            {"nom": "Bovin allaitant", "marge_brute_tete": 410, "seuil_rentabilite": 1450, "risque": "aliment"},
+        ],
+        "modeles": [
+            {"code": "culture", "libelle": "Culture / parcelle", "unites": ["ha", "q/ha", "EUR/t"]},
+            {"code": "elevage", "libelle": "Lot animal", "unites": ["tetes", "kg vif", "EUR/tete"]},
+            {"code": "vente-directe", "libelle": "Produit transforme", "unites": ["lots", "pieces", "EUR/piece"]},
         ],
         "workflows": ["intervention-culture-stock-marge", "achat-intrant-banque-stock", "elevage-sante-lot-marge"],
     }
@@ -345,19 +380,29 @@ def get_marges() -> Dict[str, Any]:
 @router.post("/marges/simuler")
 def simuler_marge(request: ScenarioMargeRequest) -> Dict[str, Any]:
     """Calculer une marge brute simple pour valider le futur simulateur."""
-    produit = request.surface_ha * request.rendement * request.prix_unitaire + request.aides
-    charges = sum([request.semences, request.engrais, request.phytos, request.alimentation, request.carburant, request.main_oeuvre, request.autres_charges_operationnelles])
-    marge_brute = produit - charges
+    rendement_stresse = request.rendement * (1 + request.variation_rendement_percent / 100)
+    prix_stresse = request.prix_unitaire * (1 + request.variation_prix_percent / 100)
+    produit_brut = request.surface_ha * request.rendement * request.prix_unitaire + request.aides
+    produit_stresse = request.surface_ha * rendement_stresse * prix_stresse + request.aides
+    pertes = produit_brut * (request.pertes_percent / 100)
+    charges = sum([request.semences, request.engrais, request.phytos, request.alimentation, request.carburant, request.main_oeuvre, request.materiel, request.autres_charges_operationnelles])
+    marge_brute = produit_brut - charges - pertes
+    marge_stressee = produit_stresse - charges - pertes
     marge_ha = marge_brute / request.surface_ha
-    prix_equilibre = charges / (request.surface_ha * request.rendement) if request.rendement else None
+    prix_equilibre = (charges + pertes - request.aides) / (request.surface_ha * request.rendement) if request.rendement else None
+    rendement_equilibre = (charges + pertes - request.aides) / (request.surface_ha * request.prix_unitaire) if request.prix_unitaire else None
 
     return {
         "scenario": request.libelle,
-        "produit_total": round(produit, 2),
+        "produit_total": round(produit_brut, 2),
+        "produit_stresse": round(produit_stresse, 2),
         "charges_operationnelles": round(charges, 2),
+        "pertes_estimees": round(pertes, 2),
         "marge_brute": round(marge_brute, 2),
+        "marge_stressee": round(marge_stressee, 2),
         "marge_brute_ha": round(marge_ha, 2),
         "prix_equilibre": round(prix_equilibre, 2) if prix_equilibre is not None else None,
+        "rendement_equilibre": round(rendement_equilibre, 2) if rendement_equilibre is not None else None,
         "analyse": "rentable" if marge_brute >= 0 else "a revoir",
     }
 
@@ -370,6 +415,28 @@ def get_banque() -> Dict[str, Any]:
         "connecteurs_prevus": ["Bridge", "Powens", "GoCardless Bank Account Data", "import CSV/OFX"],
         "analyses": ["categorisation automatique des flux", "rapprochement factures / paiements", "detection des doublons et operations inhabituelles", "alerte solde bas, gros decaissement, retard client ou prelevement inconnu", "projection de tresorerie court terme"],
         "workflow": "achat-intrant-banque-stock",
+    }
+
+
+@router.get("/sync")
+def get_sync() -> Dict[str, Any]:
+    """Lister les espaces de synchronisation et les flux a connecter."""
+    return {
+        "connecteurs": [
+            {"code": "bank", "nom": "Banque", "statut": "a connecter", "cible": "rapprochement facture / paiement"},
+            {"code": "tpe", "nom": "TPE", "statut": "pret a parametrer", "cible": "paiements carte vers caisse"},
+            {"code": "iot", "nom": "IoT ferme", "statut": "a connecter", "cible": "capteurs silo, eau, energie, carburant"},
+            {"code": "scale", "nom": "Balance", "statut": "mapping requis", "cible": "poids vers stocks, ventes et rendements"},
+            {"code": "weather", "nom": "Meteo", "statut": "optionnel", "cible": "fenetres d'intervention et alertes"},
+        ],
+        "flux": [
+            {"source": "Caisse", "destination": "Comptabilite", "regle": "ticket valide -> ecriture vente + TVA"},
+            {"source": "TPE", "destination": "Banque", "regle": "paiement carte -> attente versement -> rapprochement"},
+            {"source": "Balance", "destination": "Stocks", "regle": "poids valide -> mouvement lot + prix de revient"},
+            {"source": "IoT", "destination": "Alertes", "regle": "seuil capteur -> notification + tache"},
+            {"source": "Banque", "destination": "Achats", "regle": "debit fournisseur -> facture + stock + cout atelier"},
+        ],
+        "garde_fous": ["mode simulation", "validation humaine", "journal d'audit", "rejeu d'un flux", "controle doublons"],
     }
 
 
