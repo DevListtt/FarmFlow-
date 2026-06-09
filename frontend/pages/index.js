@@ -245,7 +245,7 @@ export default function Home() {
               <FiGrid className="h-4 w-4" />
               Applications
             </Link>
-            <Link href="/apps/marges" className="btn btn-outline gap-2">
+            <Link href="/marges" className="btn btn-outline gap-2">
               <FiBarChart2 className="h-4 w-4" />
               Marges
             </Link>
