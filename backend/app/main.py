@@ -8,7 +8,7 @@ from fastapi.openapi.utils import get_openapi
 from .database import engine, Base, init_db
 from .core.config import settings
 from .api import (
-    animaux, parcelles, stocks, ventes, chantiers,
+    animaux, parcellaire, parcelles, stocks, ventes, chantiers,
     rh, flotte, crm, comptabilite, communication, ia, export, zapier, calendrier,
     pilotage_transactionnel, pilotage
 )
@@ -83,6 +83,7 @@ app.add_middleware(
 
 # Inclure tous les routeurs
 app.include_router(animaux.router)
+app.include_router(parcellaire.router)
 app.include_router(parcelles.router)
 app.include_router(stocks.router)
 app.include_router(ventes.router)
