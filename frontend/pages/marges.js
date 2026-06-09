@@ -1,7 +1,11 @@
 import Head from 'next/head'
 import { useMemo, useState } from 'react'
+import { useQuery } from 'react-query'
+import axios from 'axios'
 import { FiBarChart2, FiDollarSign, FiSliders, FiTrendingDown, FiTrendingUp } from 'react-icons/fi'
 import Layout from '../components/Layout'
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 const presets = {
   cereales: {
@@ -48,8 +52,8 @@ const presets = {
   },
 }
 
-const formatCurrency = (value) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value)
-const formatNumber = (value) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 }).format(value)
+const formatCurrency = (value) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(value || 0)
+const formatNumber = (value) => new Intl.NumberFormat('fr-FR', { maximumFractionDigits: 1 }).format(value || 0)
 
 const fields = [
   { key: 'surface', label: 'Surface / lots', suffix: 'ha ou lots' },
@@ -65,13 +69,54 @@ const fields = [
   { key: 'other', label: 'Autres charges', suffix: 'EUR/ha' },
 ]
 
+const simulateMargin = async (payload) => {
+  const response = await axios.post(`${API_URL}/pilotage/marges/simuler`, payload)
+  return response.data
+}
+
+const fetchMarginReference = async () => {
+  const response = await axios.get(`${API_URL}/pilotage/marges`)
+  return response.data
+}
+
+const buildPayload = (scenario, saleLoss, priceStress, yieldStress) => ({
+  libelle: scenario.label,
+  surface_ha: scenario.surface,
+  rendement: scenario.yield,
+  prix_unitaire: scenario.price,
+  aides: scenario.surface * scenario.aid,
+  semences: scenario.surface * scenario.seed,
+  engrais: scenario.surface * scenario.fertilizer,
+  phytos: scenario.surface * scenario.cropProtection,
+  alimentation: 0,
+  carburant: scenario.surface * scenario.fuel,
+  main_oeuvre: scenario.surface * scenario.labor,
+  materiel: scenario.surface * scenario.machinery,
+  autres_charges_operationnelles: scenario.surface * scenario.other,
+  pertes_percent: saleLoss,
+  variation_prix_percent: priceStress,
+  variation_rendement_percent: yieldStress,
+})
+
 export default function MargesPage() {
   const [scenario, setScenario] = useState(presets.cereales)
   const [saleLoss, setSaleLoss] = useState(4)
   const [priceStress, setPriceStress] = useState(-8)
   const [yieldStress, setYieldStress] = useState(-10)
 
-  const results = useMemo(() => {
+  const payload = useMemo(() => buildPayload(scenario, saleLoss, priceStress, yieldStress), [priceStress, saleLoss, scenario, yieldStress])
+  const { isError: referenceError } = useQuery('pilotage-marges-reference', fetchMarginReference, { staleTime: 60000 })
+  const { data: apiResults, isFetching, isError: simulationError } = useQuery(
+    ['pilotage-marges-simulation', payload],
+    () => simulateMargin(payload),
+    {
+      enabled: scenario.surface > 0 && scenario.price >= 0,
+      keepPreviousData: true,
+      staleTime: 1000,
+    }
+  )
+
+  const localResults = useMemo(() => {
     const revenue = scenario.surface * scenario.yield * scenario.price
     const aid = scenario.surface * scenario.aid
     const chargesHa = scenario.seed + scenario.fertilizer + scenario.cropProtection + scenario.fuel + scenario.labor + scenario.machinery + scenario.other
@@ -88,7 +133,6 @@ export default function MargesPage() {
     return {
       revenue,
       aid,
-      chargesHa,
       charges,
       lossCost,
       grossMargin,
@@ -99,6 +143,18 @@ export default function MargesPage() {
       ebitdaProxy,
     }
   }, [priceStress, saleLoss, scenario, yieldStress])
+
+  const results = apiResults ? {
+    revenue: apiResults.produit_total,
+    charges: apiResults.charges_operationnelles,
+    lossCost: apiResults.pertes_estimees,
+    grossMargin: apiResults.marge_brute,
+    marginHa: apiResults.marge_brute_ha,
+    breakEvenPrice: apiResults.prix_equilibre,
+    breakEvenYield: apiResults.rendement_equilibre,
+    stressedMargin: apiResults.marge_stressee,
+    ebitdaProxy: localResults.ebitdaProxy,
+  } : localResults
 
   const chargeLines = [
     { label: 'Semences', value: scenario.seed },
@@ -130,6 +186,7 @@ export default function MargesPage() {
             <p className="mt-2 max-w-4xl text-sm leading-6 text-slate-600">
               Construis un scenario par culture, lot animal ou vente directe, puis teste le prix, le rendement, les pertes, les charges et le seuil de rentabilite.
             </p>
+            {(referenceError || simulationError) && <p className="mt-3 text-sm text-amber-700">Mode local actif : calcul de secours affiche.</p>}
           </div>
           <div className="grid grid-cols-3 gap-2">
             {Object.entries(presets).map(([key, preset]) => (
@@ -148,9 +205,12 @@ export default function MargesPage() {
       <section className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
         <div className="space-y-5">
           <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-            <div className="mb-4 flex items-center gap-2">
-              <FiSliders className="h-5 w-5 text-emerald-700" />
-              <h2 className="text-lg font-semibold text-slate-950">Hypotheses</h2>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <FiSliders className="h-5 w-5 text-emerald-700" />
+                <h2 className="text-lg font-semibold text-slate-950">Hypotheses</h2>
+              </div>
+              {isFetching && <span className="text-xs font-medium text-emerald-700">Calcul API...</span>}
             </div>
             <label className="mb-3 block">
               <span className="mb-1 block text-xs font-medium text-slate-500">Nom du scenario</span>
@@ -258,7 +318,7 @@ export default function MargesPage() {
             <div className="mt-4 grid gap-3 md:grid-cols-3">
               <div className="rounded-lg bg-slate-50 p-3">
                 <p className="text-xs text-slate-500">Produit total</p>
-                <p className="mt-1 text-lg font-semibold">{formatCurrency(results.revenue + results.aid)}</p>
+                <p className="mt-1 text-lg font-semibold">{formatCurrency(results.revenue)}</p>
               </div>
               <div className="rounded-lg bg-slate-50 p-3">
                 <p className="text-xs text-slate-500">Charges totales</p>
