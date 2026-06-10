@@ -272,7 +272,9 @@ export default function SyncPage() {
                 <div key={`${flow.source}-${flow.destination}`} className="grid gap-3 rounded-lg border border-slate-200 p-3 md:grid-cols-[160px_1fr_130px] md:items-center">
                   <div className="flex items-center gap-2 text-sm font-semibold text-slate-950">
                     <FiDatabase className="h-4 w-4 text-slate-500" />
-                    {flow.source} -> {flow.destination}
+                    <span>{flow.source}</span>
+                    <span className="text-slate-400">-&gt;</span>
+                    <span>{flow.destination}</span>
                   </div>
                   <p className="text-sm text-slate-600">{flow.regle}</p>
                   <span className={`inline-flex justify-center rounded-full border px-2 py-1 text-xs font-medium ${statusClasses[flow.statut] || statusClasses.optionnel}`}>
