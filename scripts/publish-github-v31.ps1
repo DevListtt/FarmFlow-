@@ -7,7 +7,8 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-$SourceRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ScriptRoot = Split-Path -Parent $MyInvocation.MyCommand.Path
+$SourceRoot = Split-Path -Parent $ScriptRoot
 $CloneRoot = Join-Path $WorkRoot "FarmFlow-"
 $CloneUrl = $RepositoryUrl
 

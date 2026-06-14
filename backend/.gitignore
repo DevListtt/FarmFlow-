@@ -66,6 +66,7 @@ Thumbs.db
 /uploads/
 *.csv
 *.json
+!app/core/module_manifest_catalog.json
 *.pdf
 
 # Docker

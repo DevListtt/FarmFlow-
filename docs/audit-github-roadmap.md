@@ -6,7 +6,7 @@ Date: 2026-06-14
 
 Depot GitHub inspecte: `DevListtt/FarmFlow-`
 
-La version locale `farmflow-erp-agri-ui-v31` est en avance sur `main`.
+La version `farmflow-erp-agri-ui-v31` a ete consolidee dans `main` via la PR `#11`.
 
 - 128 fichiers locaux detectes.
 - 97 fichiers detectes sur `main`.
@@ -74,9 +74,9 @@ Changements recommandes sans re-ecriture:
 
 1. Ajouter PostGIS en durcissement progressif, pas en pre-requis immediat.
 2. Passer progressivement les contrats critiques en TypeScript + Zod.
-3. Stabiliser un lockfile frontend.
+3. Maintenir le lockfile frontend et reduire progressivement les alertes `npm audit`.
 4. Migrer `react-query` v3 vers `@tanstack/react-query`.
-5. Ajouter une CI minimale: backend tests, frontend lint/build, verification Docker.
+5. Elargir la CI: smoke tests Playwright, lint, verification Docker.
 6. Transformer les pages en vrais postes de travail par profil.
 
 ## Priorites produit
@@ -86,6 +86,7 @@ Changements recommandes sans re-ecriture:
 - Publier `v31` sur une branche GitHub dediee.
 - Ouvrir une PR de consolidation.
 - Garder une trace claire des fichiers ajoutes et modifies.
+- Ajouter CI, lockfile et script de preparation Windows.
 
 ### Lot 2 - Experience metier
 
@@ -96,7 +97,6 @@ Changements recommandes sans re-ecriture:
 
 ### Lot 3 - Robustesse
 
-- Lockfile frontend.
 - Tests transactionnels dans CI.
 - Schemas API plus stricts.
 - Journal d'audit affiche dans l'UI.
