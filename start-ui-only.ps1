@@ -17,7 +17,11 @@ Set-Location $Frontend
 
 if (-not $SkipInstall) {
     Write-Host "Installation des dependances frontend..."
-    npm install
+    if (Test-Path "package-lock.json") {
+        npm ci
+    } else {
+        npm install
+    }
 }
 
 Write-Host ""

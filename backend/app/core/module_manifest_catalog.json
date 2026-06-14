@@ -1,0 +1,182 @@
+{
+  "manifest_version": 1,
+  "source": "catalog",
+  "modules": {
+    "pilotage": {
+      "dependances": [],
+      "etats": ["actif", "a-controler"],
+      "permissions": ["lecture", "configuration", "validation"],
+      "domaines_donnees": ["kpis", "alertes", "configuration"],
+      "contrats": ["dashboard", "catalogue", "recommandation"],
+      "controles": ["coherence modules", "roles", "workflows"]
+    },
+    "noyau-operationnel": {
+      "dependances": ["backoffice", "stocks", "comptabilite"],
+      "etats": ["simulation", "pret", "valide"],
+      "permissions": ["operation", "validation", "supervision"],
+      "domaines_donnees": ["achats", "stock", "caisse", "banque", "iot"],
+      "contrats": ["transaction", "mouvement stock", "ecriture comptable"],
+      "controles": ["double ecriture", "stock negatif", "audit"]
+    },
+    "backoffice": {
+      "dependances": [],
+      "etats": ["brouillon", "actif", "inactif"],
+      "permissions": ["lecture", "ecriture", "admin referentiel"],
+      "domaines_donnees": ["produits", "tiers", "lots", "tarifs"],
+      "contrats": ["referentiel", "audit", "export csv"],
+      "controles": ["unicite code", "seuil stock", "TVA"]
+    },
+    "historiques": {
+      "dependances": ["backoffice", "noyau-operationnel"],
+      "etats": ["consultation", "exporte"],
+      "permissions": ["lecture", "export"],
+      "domaines_donnees": ["tickets", "achats", "mouvements", "ecritures"],
+      "contrats": ["detail", "export", "audit"],
+      "controles": ["tracabilite", "filtrage", "pagination"]
+    },
+    "parcelles": {
+      "dependances": ["stocks", "marges"],
+      "etats": ["brouillon", "validee", "regroupee", "archivee"],
+      "permissions": ["lecture carte", "edition carte", "validation terrain"],
+      "domaines_donnees": ["geojson", "ilots", "cultures", "chantiers"],
+      "contrats": ["cartographie", "import geojson", "export geojson"],
+      "controles": ["surface", "geometrie", "ilot"]
+    },
+    "cultures-interventions": {
+      "dependances": ["parcelles", "stocks", "flotte-materiel"],
+      "etats": ["planifiee", "en-cours", "realisee", "controlee"],
+      "permissions": ["planification", "saisie terrain", "validation"],
+      "domaines_donnees": ["interventions", "intrants", "temps", "IFT"],
+      "contrats": ["chantier", "consommation stock", "cout atelier"],
+      "controles": ["fenetre meteo", "dose", "delai avant recolte"]
+    },
+    "elevage": {
+      "dependances": ["stocks", "calendrier", "marges"],
+      "etats": ["actif", "en-suivi", "sorti"],
+      "permissions": ["lecture troupeau", "saisie sanitaire", "validation"],
+      "domaines_donnees": ["animaux", "lots", "sanitaire", "alimentation"],
+      "contrats": ["identification", "mouvement animal", "suivi lot"],
+      "controles": ["identification", "evenement sanitaire", "ration"]
+    },
+    "stocks": {
+      "dependances": ["backoffice"],
+      "etats": ["disponible", "reserve", "bloque", "sorti"],
+      "permissions": ["lecture stock", "mouvement", "inventaire"],
+      "domaines_donnees": ["lots", "mouvements", "valorisation", "seuils"],
+      "contrats": ["entree", "sortie", "reservation", "inventaire"],
+      "controles": ["stock negatif", "lot", "valorisation"]
+    },
+    "achats": {
+      "dependances": ["backoffice", "stocks", "comptabilite", "banque-tresorerie"],
+      "etats": ["brouillon", "commande", "receptionnee", "facturee", "payee"],
+      "permissions": ["achat", "reception", "validation facture"],
+      "domaines_donnees": ["fournisseurs", "commandes", "receptions", "factures"],
+      "contrats": ["commande fournisseur", "reception stock", "ecriture fournisseur"],
+      "controles": ["prix", "quantite recue", "TVA deductible"]
+    },
+    "ventes-caisse": {
+      "dependances": ["crm", "stocks", "comptabilite"],
+      "etats": ["panier", "valide", "cloture", "rapproche"],
+      "permissions": ["vente", "encaissement", "cloture"],
+      "domaines_donnees": ["tickets", "paiements", "clients", "clotures"],
+      "contrats": ["ticket", "paiement", "sortie stock", "ecriture vente"],
+      "controles": ["fond de caisse", "TVA collectee", "moyen paiement"]
+    },
+    "commandes-clients": {
+      "dependances": ["crm", "stocks", "ventes-caisse", "comptabilite"],
+      "etats": ["brouillon", "reservee", "preparation", "convertie", "annulee"],
+      "permissions": ["commande", "reservation", "conversion caisse"],
+      "domaines_donnees": ["catalogue", "reservations", "clients", "retraits"],
+      "contrats": ["reservation stock", "annulation", "conversion ticket"],
+      "controles": ["disponibilite", "lot", "remise client"]
+    },
+    "crm": {
+      "dependances": ["backoffice"],
+      "etats": ["prospect", "client", "inactif"],
+      "permissions": ["lecture client", "edition client", "segmentation"],
+      "domaines_donnees": ["clients", "segments", "contrats", "relances"],
+      "contrats": ["fiche client", "segment", "historique"],
+      "controles": ["doublon client", "remise", "consentement"]
+    },
+    "comptabilite": {
+      "dependances": ["backoffice"],
+      "etats": ["brouillon", "validee", "rapprochee", "cloturee"],
+      "permissions": ["lecture compta", "validation ecriture", "export"],
+      "domaines_donnees": ["journaux", "ecritures", "TVA", "grand livre"],
+      "contrats": ["ecriture double", "journal", "export reglementaire"],
+      "controles": ["equilibre debit credit", "compte", "periode"]
+    },
+    "banque-tresorerie": {
+      "dependances": ["comptabilite"],
+      "etats": ["importe", "a-categoriser", "rapproche", "ecart"],
+      "permissions": ["import banque", "categorisation", "rapprochement"],
+      "domaines_donnees": ["transactions", "soldes", "rapprochements"],
+      "contrats": ["import bancaire", "regle categorisation", "lettrage"],
+      "controles": ["doublon bancaire", "ecart montant", "date valeur"]
+    },
+    "marges": {
+      "dependances": ["stocks", "comptabilite"],
+      "etats": ["scenario", "simule", "valide"],
+      "permissions": ["lecture marge", "simulation", "validation hypothese"],
+      "domaines_donnees": ["prix de revient", "charges", "revenus", "ration"],
+      "contrats": ["simulation", "stress test", "cout lot"],
+      "controles": ["hypotheses", "cout incomplet", "seuil rentabilite"]
+    },
+    "flotte-materiel": {
+      "dependances": ["calendrier"],
+      "etats": ["disponible", "reserve", "maintenance", "indisponible"],
+      "permissions": ["planning materiel", "maintenance", "cout horaire"],
+      "domaines_donnees": ["materiels", "entretiens", "carburant", "planning"],
+      "contrats": ["reservation", "entretien", "cout horaire"],
+      "controles": ["maintenance due", "disponibilite", "cout carburant"]
+    },
+    "rh": {
+      "dependances": ["calendrier"],
+      "etats": ["planifie", "present", "absent", "valide"],
+      "permissions": ["planning equipe", "saisie temps", "validation"],
+      "domaines_donnees": ["employes", "temps", "absences", "competences"],
+      "contrats": ["planning", "temps de travail", "absence"],
+      "controles": ["heures", "competence", "conflit planning"]
+    },
+    "calendrier": {
+      "dependances": [],
+      "etats": ["a-faire", "planifie", "termine"],
+      "permissions": ["lecture agenda", "edition agenda", "rappel"],
+      "domaines_donnees": ["evenements", "rappels", "echeances"],
+      "contrats": ["evenement", "recurrence", "notification"],
+      "controles": ["date", "recurrence", "assignation"]
+    },
+    "documents-reglementaire": {
+      "dependances": ["comptabilite", "historiques"],
+      "etats": ["prepare", "controle", "exporte", "archive"],
+      "permissions": ["lecture document", "generation", "export"],
+      "domaines_donnees": ["pieces", "exports", "audit", "tracabilite"],
+      "contrats": ["piece justificative", "export", "archive"],
+      "controles": ["piece manquante", "periode", "signature"]
+    },
+    "ia-agricole": {
+      "dependances": ["pilotage", "historiques"],
+      "etats": ["suggestion", "a-valider", "valide", "rejete"],
+      "permissions": ["analyse", "validation humaine", "audit"],
+      "domaines_donnees": ["anomalies", "OCR", "recommandations"],
+      "contrats": ["suggestion", "explication", "validation"],
+      "controles": ["source", "confiance", "validation humaine"]
+    },
+    "communication": {
+      "dependances": ["crm"],
+      "etats": ["brouillon", "programme", "envoye", "erreur"],
+      "permissions": ["campagne", "envoi", "segmentation"],
+      "domaines_donnees": ["campagnes", "destinataires", "modeles"],
+      "contrats": ["message", "campagne", "notification"],
+      "controles": ["destinataire", "canal", "consentement"]
+    },
+    "integrations": {
+      "dependances": ["noyau-operationnel"],
+      "etats": ["a-configurer", "test", "actif", "erreur"],
+      "permissions": ["configuration connecteur", "test", "supervision"],
+      "domaines_donnees": ["webhooks", "connecteurs", "iot", "paiement"],
+      "contrats": ["webhook", "mapping", "journal sync"],
+      "controles": ["secret", "mapping", "rejeu"]
+    }
+  }
+}

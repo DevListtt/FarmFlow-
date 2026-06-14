@@ -4,6 +4,12 @@ frontend/.next/
 frontend/out/
 frontend/.env.local
 
+# Local environment files
+.env
+.env.*
+backend/.env
+!backend/.env.example
+
 # Python caches
 __pycache__/
 *.py[cod]
