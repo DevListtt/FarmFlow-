@@ -1,15 +1,14 @@
 import { QueryClient, QueryClientProvider } from 'react-query'
-import { ReactQueryDevtools } from 'react-query/devtools'
 import { Toaster } from 'react-hot-toast'
+import 'leaflet/dist/leaflet.css'
 import '../styles/globals.css'
 
-// Créer un client QueryClient
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       refetchOnWindowFocus: false,
       retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      staleTime: 5 * 60 * 1000,
     },
   },
 })
@@ -18,8 +17,6 @@ function MyApp({ Component, pageProps }) {
   return (
     <QueryClientProvider client={queryClient}>
       <Component {...pageProps} />
-      
-      {/* Toaster pour les notifications */}
       <Toaster
         position="top-right"
         reverseOrder={false}
@@ -54,11 +51,6 @@ function MyApp({ Component, pageProps }) {
           },
         }}
       />
-      
-      {/* React Query Devtools (uniquement en développement) */}
-      {process.env.NODE_ENV === 'development' && (
-        <ReactQueryDevtools initialIsOpen={false} position="bottom" />
-      )}
     </QueryClientProvider>
   )
 }

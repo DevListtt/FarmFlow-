@@ -9,8 +9,8 @@ from .database import engine, Base, init_db
 from .core.config import settings
 from .api import (
     animaux, parcellaire, parcelles, stocks, ventes, chantiers,
-    rh, flotte, crm, comptabilite, communication, ia, export, zapier, calendrier,
-    pilotage_transactionnel, pilotage
+    rh, flotte, crm, comptabilite, commandes, communication, ia, export, zapier, calendrier,
+    noyau_agri, pilotage_transactionnel, pilotage, backoffice
 )
 
 # Initialiser la base de données (optionnel, peut être fait via Alembic)
@@ -83,6 +83,8 @@ app.add_middleware(
 
 # Inclure tous les routeurs
 app.include_router(animaux.router)
+app.include_router(noyau_agri.router)
+app.include_router(backoffice.router)
 app.include_router(parcellaire.router)
 app.include_router(parcelles.router)
 app.include_router(stocks.router)
@@ -92,6 +94,7 @@ app.include_router(rh.router)
 app.include_router(flotte.router)
 app.include_router(crm.router)
 app.include_router(comptabilite.router)
+app.include_router(commandes.router)
 app.include_router(communication.router)
 app.include_router(ia.router)
 app.include_router(export.router)
@@ -111,7 +114,7 @@ def read_root():
         "modules": [
             "animaux", "parcelles", "stocks", "ventes", "chantiers",
             "rh", "flotte", "crm", "comptabilite", "communication", 
-            "ia", "export", "zapier", "calendrier", "pilotage"
+            "ia", "export", "zapier", "calendrier", "commandes", "noyau", "pilotage"
         ],
         "version": "2.0.0"
     }

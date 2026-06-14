@@ -1,7 +1,7 @@
 # FarmFlow Backend Requirements
 # ERP Agricole Open Source
 
-# FastAPI et dépendances
+# FastAPI et dependances
 fastapi==0.109.0
 uvicorn==0.27.0
 python-multipart==0.0.6
@@ -9,7 +9,7 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 python-dotenv==1.0.0
 
-# Base de données
+# Base de donnees
 sqlalchemy==2.0.23
 psycopg2-binary==2.9.9
 alembic==1.13.1

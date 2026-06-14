@@ -29,7 +29,10 @@
     "recharts": "^2.10.4",
     "react-datepicker": "^6.8.0",
     "react-select": "^5.8.0",
-    "clsx": "^2.0.0"
+    "clsx": "^2.0.0",
+    "leaflet": "^1.9.4",
+    "@turf/area": "^7.3.0",
+    "@turf/centroid": "^7.3.0"
   },
   "devDependencies": {
     "@types/node": "^20.10.6",

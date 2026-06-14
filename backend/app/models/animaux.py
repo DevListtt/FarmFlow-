@@ -83,10 +83,10 @@ class Animal(Base):
     
     type_animal = relationship("TypeAnimal", back_populates="animaux")
     race = relationship("Race", back_populates="animaux")
-    mere = relationship("Animal", remote_side=[id], backref="enfants_mere")
-    pere = relationship("Animal", remote_side=[id], backref="enfants_pere")
+    mere = relationship("Animal", remote_side=[id], foreign_keys=[mere_id], backref="enfants_mere")
+    pere = relationship("Animal", remote_side=[id], foreign_keys=[pere_id], backref="enfants_pere")
     suivi_sante = relationship("SuiviSante", back_populates="animal", cascade="all, delete-orphan")
-    reproductions = relationship("Reproduction", back_populates="animal", cascade="all, delete-orphan")
+    reproductions = relationship("Reproduction", back_populates="animal", foreign_keys="Reproduction.animal_id", cascade="all, delete-orphan")
 
 
 class SuiviSante(Base):
@@ -123,5 +123,5 @@ class Reproduction(Base):
     observations = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
-    animal = relationship("Animal", back_populates="reproductions")
-    partenaire = relationship("Animal", remote_side=[id])
+    animal = relationship("Animal", back_populates="reproductions", foreign_keys=[animal_id])
+    partenaire = relationship("Animal", remote_side=[Animal.id], foreign_keys=[partenaire_id])

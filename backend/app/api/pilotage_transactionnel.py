@@ -9,8 +9,13 @@ from datetime import datetime
 from typing import Any, Dict, List, Optional
 from uuid import uuid4
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
+
+from ..database import get_db
+from ..models.transactionnel import LigneTicketAgri, TicketCaisseAgri
+from ..services import transactionnel as tx
 
 
 router = APIRouter(prefix="/pilotage", tags=["pilotage-transactionnel"])
@@ -25,10 +30,22 @@ class LigneTicketCaisse(BaseModel):
 
 
 class TicketCaisseRequest(BaseModel):
+    client_id: Optional[int] = None
     client: str = "Client comptoir"
     moyen_paiement: str = "card"
     remise_percent: float = Field(0, ge=0, le=100)
     lignes: List[LigneTicketCaisse]
+
+
+class ClientCaisseRequest(BaseModel):
+    nom: str
+    segment: str = "circuit-court"
+    canal: str = "boutique ferme"
+    email: Optional[str] = None
+    telephone: Optional[str] = None
+    delai_paiement: int = Field(0, ge=0)
+    remise_reference: float = Field(0, ge=0)
+    volume_annuel: float = Field(0, ge=0)
 
 
 class ClotureCaisseRequest(BaseModel):
@@ -132,19 +149,25 @@ FLUX_SYNC: List[Dict[str, str]] = [
 
 
 @router.get("/caisse")
-def get_caisse_connectee() -> Dict[str, Any]:
+def get_caisse_connectee(db: Session = Depends(get_db)) -> Dict[str, Any]:
+    tx.seed_demo(db)
+    tickets = db.query(TicketCaisseAgri).order_by(TicketCaisseAgri.created_at.desc()).limit(50).all()
+    products = db.query(tx.ProduitAgri).filter(tx.ProduitAgri.actif.is_(True)).order_by(tx.ProduitAgri.famille, tx.ProduitAgri.nom).all()
+    clients = db.query(tx.TiersAgri).filter(tx.TiersAgri.type_tiers == "client", tx.TiersAgri.actif.is_(True)).order_by(tx.TiersAgri.nom).all()
+    revenue = sum(ticket.total_ttc or 0 for ticket in tickets)
+    basket = revenue / len(tickets) if tickets else 0
     return {
         "objectif": "Encaisser ventes boutique, marches, paniers, animaux ou produits transformes.",
         "session": {
             "statut": "ouverte",
             "journal": "Boutique ferme",
             "fond_initial": 250,
-            "tickets": 38,
-            "ca_jour": 1284,
-            "panier_moyen": 33.8,
+            "tickets": len(tickets),
+            "ca_jour": round(revenue, 2),
+            "panier_moyen": round(basket, 2),
             "ecart_caisse": 0,
         },
-        "clients": ["Client comptoir", "Restaurant Les Tilleuls", "AMAP village", "Client pro facture"],
+        "clients": [tx.tier_to_dict(client) for client in clients],
         "fonctionnalites": [
             "tickets et factures simplifiees",
             "especes, carte bancaire, virement, cheque et avoirs",
@@ -152,7 +175,7 @@ def get_caisse_connectee() -> Dict[str, Any]:
             "ventilation automatique vers ventes, TVA et comptabilite",
             "mode hors-ligne pour marches et batiments agricoles",
         ],
-        "produits_exemple": PRODUITS_CAISSE,
+        "produits_exemple": [tx.product_to_dict(product) for product in products],
         "moyens_paiement": MOYENS_PAIEMENT_CAISSE,
         "ecritures_automatiques": [
             "vente -> produit + TVA collectee",
@@ -165,11 +188,42 @@ def get_caisse_connectee() -> Dict[str, Any]:
     }
 
 
+@router.post("/caisse/clients")
+def creer_client_caisse(request: ClientCaisseRequest, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    tx.seed_demo(db)
+    existing = db.query(tx.TiersAgri).filter(tx.TiersAgri.nom == request.nom).first()
+    if existing:
+        existing.segment = request.segment
+        existing.canal = request.canal
+        existing.email = request.email
+        existing.telephone = request.telephone
+        existing.delai_paiement = request.delai_paiement
+        existing.remise_reference = request.remise_reference
+        existing.volume_annuel = request.volume_annuel
+        status = "client mis a jour"
+        tier = existing
+    else:
+        tier = tx.find_or_create_tier(db, request.nom, request.segment)
+        tier.canal = request.canal
+        tier.email = request.email
+        tier.telephone = request.telephone
+        tier.delai_paiement = request.delai_paiement
+        tier.remise_reference = request.remise_reference
+        tier.volume_annuel = request.volume_annuel
+        status = "client cree"
+
+    tx.audit(db, "crm", tier.code, "client caisse", {"segment": tier.segment, "canal": tier.canal})
+    db.commit()
+    db.refresh(tier)
+    return {"statut": status, "client": tx.tier_to_dict(tier)}
+
+
 @router.post("/caisse/tickets")
-def creer_ticket_caisse(request: TicketCaisseRequest) -> Dict[str, Any]:
+def creer_ticket_caisse(request: TicketCaisseRequest, db: Session = Depends(get_db)) -> Dict[str, Any]:
     if not request.lignes:
         raise HTTPException(status_code=400, detail="Le ticket doit contenir au moins une ligne")
 
+    tx.seed_demo(db)
     sous_total = sum(ligne.prix_unitaire * ligne.quantite for ligne in request.lignes)
     remise = sous_total * (request.remise_percent / 100)
     total = max(sous_total - remise, 0)
@@ -177,27 +231,90 @@ def creer_ticket_caisse(request: TicketCaisseRequest) -> Dict[str, Any]:
         ((ligne.prix_unitaire * ligne.quantite) * (1 - request.remise_percent / 100) * ligne.tva) / (100 + ligne.tva)
         for ligne in request.lignes
     )
-    couts = {produit["code"]: produit["cout_revient"] for produit in PRODUITS_CAISSE}
-    cout_revient = sum(couts.get(ligne.code, ligne.prix_unitaire * 0.55) * ligne.quantite for ligne in request.lignes)
-    mouvements_stock = [
-        {
-            "produit": ligne.code,
-            "libelle": ligne.nom,
-            "quantite": -ligne.quantite,
-            "motif": "vente caisse",
-        }
-        for ligne in request.lignes
-    ]
-    ticket_id = f"CAI-{datetime.utcnow().strftime('%Y%m%d')}-{str(uuid4())[:8].upper()}"
+    ticket_id = tx.reference("CAI")
     paiement = next(
         (moyen for moyen in MOYENS_PAIEMENT_CAISSE if moyen["code"] == request.moyen_paiement),
         MOYENS_PAIEMENT_CAISSE[0],
     )
+    if request.client_id:
+        client = db.query(tx.TiersAgri).filter(tx.TiersAgri.id == request.client_id, tx.TiersAgri.type_tiers == "client").first()
+        if not client:
+            raise HTTPException(status_code=404, detail="Client introuvable")
+    else:
+        client = tx.find_or_create_tier(db, request.client, "circuit-court")
+    ticket = TicketCaisseAgri(
+        reference=ticket_id,
+        client=client,
+        client_nom=client.nom,
+        segment=client.segment,
+        moyen_paiement=request.moyen_paiement,
+        remise_percent=request.remise_percent,
+        total_ht=round(total - tva, 2),
+        total_tva=round(tva, 2),
+        total_ttc=round(total, 2),
+    )
+    db.add(ticket)
+    db.flush()
+
+    cout_revient = 0.0
+    mouvements_stock = []
+    for line in request.lignes:
+        product = db.query(tx.ProduitAgri).filter(tx.ProduitAgri.code == line.code).first()
+        if not product:
+            product = tx.ProduitAgri(
+                code=line.code,
+                nom=line.nom,
+                famille="Produit",
+                unite="piece",
+                prix_vente=line.prix_unitaire,
+                tva=line.tva,
+                cout_revient=line.prix_unitaire * 0.55,
+                stock=0,
+            )
+            db.add(product)
+            db.flush()
+
+        line_cost = product.cout_revient * line.quantite
+        line_total = line.prix_unitaire * line.quantite * (1 - request.remise_percent / 100)
+        cout_revient += line_cost
+        db.add(
+            LigneTicketAgri(
+                ticket=ticket,
+                produit=product,
+                produit_code=product.code,
+                libelle=line.nom,
+                lot=product.lot_courant,
+                quantite=line.quantite,
+                unite=product.unite,
+                prix_unitaire=line.prix_unitaire,
+                tva=line.tva,
+                total_ttc=round(line_total, 2),
+                marge=round(line_total - line_cost, 2),
+                source="caisse",
+            )
+        )
+        movement = tx.create_stock_movement(db, product, "vente", line.quantite, product.lot_courant, "ticket caisse", "Boutique ferme", ticket_id)
+        mouvements_stock.append(tx.movement_to_dict(movement))
+
+    ticket.cout_revient = round(cout_revient, 2)
+    ticket.marge = round(total - cout_revient, 2)
+    entries = [
+        tx.create_entry(db, "VENTE", "707", f"Ticket {ticket_id}", 0, total - tva, "ticket", ticket_id),
+        tx.create_entry(db, "TVA", "4457", f"TVA ticket {ticket_id}", 0, tva, "ticket", ticket_id),
+        tx.create_entry(db, "CAISSE", paiement["compte_attente"], f"Paiement {paiement['label']} {ticket_id}", total, 0, "ticket", ticket_id),
+        tx.create_entry(db, "STOCK", "603", f"Sortie stock {ticket_id}", cout_revient, 0, "ticket", ticket_id),
+        tx.create_entry(db, "STOCK", "3", f"Credit stock {ticket_id}", 0, cout_revient, "ticket", ticket_id),
+    ]
+    tx.audit(db, "caisse", ticket_id, "ticket valide", {"client": client.nom, "client_id": client.id, "total": total})
+    db.commit()
+    db.refresh(ticket)
 
     return {
         "ticket_id": ticket_id,
         "statut": "valide",
-        "client": request.client,
+        "client": client.nom,
+        "client_id": client.id,
+        "segment": client.segment,
         "moyen_paiement": paiement,
         "totaux": {
             "sous_total": round(sous_total, 2),
@@ -208,20 +325,25 @@ def creer_ticket_caisse(request: TicketCaisseRequest) -> Dict[str, Any]:
             "marge": round(total - cout_revient, 2),
         },
         "mouvements_stock": mouvements_stock,
-        "ecritures": [
-            {"journal": "VENTE", "libelle": f"Ticket {ticket_id}", "debit": 0, "credit": round(total - tva, 2)},
-            {"journal": "TVA", "libelle": f"TVA ticket {ticket_id}", "debit": 0, "credit": round(tva, 2)},
-            {"journal": "CAISSE", "libelle": f"Paiement {paiement['label']} {ticket_id}", "debit": round(total, 2), "credit": 0},
-            {"journal": "STOCK", "libelle": f"Sortie stock {ticket_id}", "debit": round(cout_revient, 2), "credit": 0},
-        ],
+        "ecritures": tx.entries_to_dict(entries),
         "prochaines_actions": ["imprimer ticket", "actualiser stock", "preparer rapprochement paiement"],
     }
 
 
 @router.post("/caisse/cloturer")
-def cloturer_caisse(request: ClotureCaisseRequest) -> Dict[str, Any]:
-    fond_theorique = 250 + 1284
+def cloturer_caisse(request: ClotureCaisseRequest, db: Session = Depends(get_db)) -> Dict[str, Any]:
+    tx.seed_demo(db)
+    tickets = db.query(TicketCaisseAgri).all()
+    ca = sum(ticket.total_ttc or 0 for ticket in tickets)
+    fond_theorique = 250 + ca
     ecart = request.fond_reel - fond_theorique
+    closure_ref = tx.reference("CLOT")
+    entries = [
+        tx.create_entry(db, "CAISSE", "531", "Cloture journaliere", request.fond_reel, 0, "cloture", closure_ref),
+        tx.create_entry(db, "ECART", "658", "Ecart de caisse", abs(ecart) if ecart < 0 else 0, ecart if ecart > 0 else 0, "cloture", closure_ref),
+    ]
+    tx.audit(db, "caisse", closure_ref, "cloture session", {"ecart": ecart, "tickets": len(tickets)})
+    db.commit()
     return {
         "statut": "cloture_preparee",
         "journal": "Boutique ferme",
@@ -230,10 +352,7 @@ def cloturer_caisse(request: ClotureCaisseRequest) -> Dict[str, Any]:
         "ecart": round(ecart, 2),
         "commentaire": request.commentaire,
         "actions": ["verrouiller tickets", "generer journal caisse", "preparer rapprochement banque"],
-        "ecritures": [
-            {"journal": "CAISSE", "libelle": "Cloture journaliere", "debit": round(request.fond_reel, 2), "credit": 0},
-            {"journal": "ECART", "libelle": "Ecart de caisse", "debit": abs(round(ecart, 2)) if ecart < 0 else 0, "credit": round(ecart, 2) if ecart > 0 else 0},
-        ],
+        "ecritures": tx.entries_to_dict(entries),
     }
 
 

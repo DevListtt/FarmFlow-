@@ -1,0 +1,98 @@
+# FarmFlow local test stack
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: farmflow_local_postgres
+    restart: unless-stopped
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: farmflow
+      POSTGRES_PASSWORD: farmflow
+      POSTGRES_DB: farmflow
+    volumes:
+      - farmflow_local_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U farmflow -d farmflow"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    container_name: farmflow_local_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - farmflow_local_redis_data:/data
+
+  influxdb:
+    image: influxdb:2.7-alpine
+    container_name: farmflow_local_influxdb
+    restart: unless-stopped
+    ports:
+      - "8086:8086"
+    environment:
+      DOCKER_INFLUXDB_INIT_MODE: setup
+      DOCKER_INFLUXDB_INIT_USERNAME: farmflow
+      DOCKER_INFLUXDB_INIT_PASSWORD: farmflow
+      DOCKER_INFLUXDB_INIT_ORG: farmflow
+      DOCKER_INFLUXDB_INIT_BUCKET: farmflow_metrics
+      DOCKER_INFLUXDB_INIT_ADMIN_TOKEN: farmflow-token
+    volumes:
+      - farmflow_local_influxdb_data:/var/lib/influxdb2
+      - farmflow_local_influxdb_config:/etc/influxdb2
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: farmflow_local_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      ENVIRONMENT: development
+      DEBUG: "True"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: farmflow
+      POSTGRES_PASSWORD: farmflow
+      POSTGRES_DB: farmflow
+      INFLUXDB_HOST: influxdb
+      INFLUXDB_PORT: "8086"
+      REDIS_URL: redis://redis:6379/0
+      SECRET_KEY: farmflow-secret-key-change-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+      influxdb:
+        condition: service_started
+    volumes:
+      - farmflow_local_uploads:/app/uploads
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: Dockerfile
+    container_name: farmflow_local_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: /api
+      INTERNAL_API_URL: http://backend:8000
+      NEXT_TELEMETRY_DISABLED: "1"
+    depends_on:
+      - backend
+
+volumes:
+  farmflow_local_postgres_data:
+  farmflow_local_redis_data:
+  farmflow_local_influxdb_data:
+  farmflow_local_influxdb_config:
+  farmflow_local_uploads:

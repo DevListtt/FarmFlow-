@@ -22,6 +22,7 @@ Construire une plateforme modulaire pour piloter une ferme de bout en bout :
 
 - [Documentation principale](docs/README.md)
 - [Vision ERP agricole](docs/vision-erp-agricole.md)
+- [Audit GitHub et roadmap](docs/audit-github-roadmap.md)
 
 ## Lancement rapide
 
