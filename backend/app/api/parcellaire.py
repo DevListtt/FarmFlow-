@@ -155,9 +155,127 @@ PARCELLAIRE_GPS: Dict[str, Any] = {
 }
 
 
+def _resume_parcellaire() -> Dict[str, Any]:
+    parcelles = PARCELLAIRE_GPS["parcelles"]
+    surface = sum(parcelle["surface_ha"] for parcelle in parcelles)
+    marge = sum(parcelle["surface_ha"] * parcelle["marge_prevue_ha"] for parcelle in parcelles)
+    ift = sum(parcelle["surface_ha"] * parcelle["ift_prevu"] for parcelle in parcelles) / max(surface, 1)
+    return {
+        "surface_ha": round(surface, 2),
+        "parcelles": len(parcelles),
+        "ilots": len(PARCELLAIRE_GPS["ilots"]),
+        "marge_prevue": round(marge, 2),
+        "ift_moyen": round(ift, 2),
+        "chantiers_planifies": len(PARCELLAIRE_GPS["planning_chantiers"]),
+    }
+
+
+def _alertes_parcelles() -> List[Dict[str, Any]]:
+    alertes: List[Dict[str, Any]] = []
+    for parcelle in PARCELLAIRE_GPS["parcelles"]:
+        if parcelle["ift_prevu"] >= 1.7:
+            alertes.append({
+                "niveau": "attention",
+                "parcelle": parcelle["id"],
+                "titre": "IFT a surveiller",
+                "detail": f"{parcelle['culture']} - IFT prevu {parcelle['ift_prevu']}",
+            })
+        if parcelle["statut"] in {"a preparer", "intensif"}:
+            alertes.append({
+                "niveau": "operationnel",
+                "parcelle": parcelle["id"],
+                "titre": "Chantier prioritaire",
+                "detail": f"{parcelle['nom']} - {parcelle['statut']}",
+            })
+    return alertes
+
+
+def _parcelle_feature(parcelle: Dict[str, Any]) -> Dict[str, Any]:
+    coordinates = [[point["lng"], point["lat"]] for point in parcelle.get("gps", [])]
+    if coordinates and coordinates[0] != coordinates[-1]:
+        coordinates.append(coordinates[0])
+    return {
+        "type": "Feature",
+        "properties": {
+            "id": parcelle["id"],
+            "nom": parcelle["nom"],
+            "ilot_id": parcelle["ilot_id"],
+            "surface_ha": parcelle["surface_ha"],
+            "culture": parcelle["culture"],
+            "sol": parcelle["sol"],
+            "statut": parcelle["statut"],
+            "rendement_prevu": parcelle["rendement_prevu"],
+            "ift_prevu": parcelle["ift_prevu"],
+            "marge_prevue_ha": parcelle["marge_prevue_ha"],
+        },
+        "geometry": {
+            "type": "Polygon",
+            "coordinates": [coordinates],
+        },
+    }
+
+
 @router.get("/cartographie")
 def get_cartographie_parcellaire() -> Dict[str, Any]:
-    return PARCELLAIRE_GPS
+    data = dict(PARCELLAIRE_GPS)
+    data["resume"] = _resume_parcellaire()
+    data["couches"] = [
+        {"code": "culture", "nom": "Cultures", "statut": "actif"},
+        {"code": "ilot", "nom": "Ilots", "statut": "actif"},
+        {"code": "marge", "nom": "Marge previsionnelle", "statut": "calcule"},
+        {"code": "ift", "nom": "Pression IFT", "statut": "calcule"},
+        {"code": "chantier", "nom": "Chantiers", "statut": "planifie"},
+    ]
+    data["connecteurs"] = [
+        {"code": "gps", "nom": "Trace GPS", "statut": "simulation", "precision": "2 m"},
+        {"code": "meteo", "nom": "Fenetre meteo", "statut": "a brancher", "precision": "par ilot"},
+        {"code": "iot-eau", "nom": "Irrigation", "statut": "simulation", "precision": "serres et maraichage"},
+        {"code": "mobile", "nom": "Validation terrain", "statut": "pret", "precision": "chantier"},
+    ]
+    data["alertes"] = _alertes_parcelles()
+    return data
+
+
+@router.get("/geojson")
+def get_parcellaire_geojson() -> Dict[str, Any]:
+    return {
+        "type": "FeatureCollection",
+        "name": "farmflow-parcelles",
+        "features": [_parcelle_feature(parcelle) for parcelle in PARCELLAIRE_GPS["parcelles"]],
+    }
+
+
+@router.get("/fonds-carte")
+def get_fonds_carte() -> Dict[str, Any]:
+    return {
+        "fonds": [
+            {
+                "code": "osm",
+                "nom": "OpenStreetMap",
+                "type": "raster",
+                "url": "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                "cle_requise": False,
+                "usage": "prototype local et validation fonctionnelle",
+            },
+            {
+                "code": "ign",
+                "nom": "IGN / cadastre",
+                "type": "wmts",
+                "url": "a_configurer",
+                "cle_requise": True,
+                "usage": "production France, cadastre et fonds agricoles",
+            },
+            {
+                "code": "satellite",
+                "nom": "Satellite",
+                "type": "raster",
+                "url": "a_configurer",
+                "cle_requise": True,
+                "usage": "controle visuel, serres, haies et acces",
+            },
+        ],
+        "formats": ["GeoJSON", "KML", "SHP a prevoir", "WMS/WMTS a prevoir"],
+    }
 
 
 @router.post("/ilots/regrouper")

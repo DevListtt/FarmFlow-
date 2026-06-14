@@ -1,5 +1,6 @@
 import Head from 'next/head'
 import Link from 'next/link'
+import { useQuery } from 'react-query'
 import {
   FiActivity,
   FiArrowLeft,
@@ -20,15 +21,20 @@ import {
 } from 'react-icons/fi'
 import Layout from '../../components/Layout'
 import { categoryByCode, farmflowApps, getAppByCode, workflows } from '../../lib/farmflowModules'
+import { fetchPilotageApp } from '../../lib/pilotageApi'
 
 const iconMap = {
-  pilotage: FiGrid,
+  pilotage: FiBarChart2,
+  'noyau-operationnel': FiCpu,
+  backoffice: FiSettings,
+  historiques: FiFileText,
   parcelles: FiMap,
   'cultures-interventions': FiActivity,
   elevage: FiActivity,
   stocks: FiBox,
   achats: FiShoppingCart,
   'ventes-caisse': FiCreditCard,
+  'commandes-clients': FiShoppingCart,
   crm: FiUsers,
   comptabilite: FiFileText,
   'banque-tresorerie': FiDollarSign,
@@ -52,7 +58,51 @@ const categoryColors = {
   plateforme: 'border-slate-200 bg-slate-50 text-slate-900',
 }
 
-export default function AppDetailPage({ app, relatedWorkflows }) {
+const normalizeApp = (app) => ({
+  code: app.code,
+  name: app.name || app.nom,
+  category: app.category || app.categorie,
+  route: app.route || `/apps/${app.code}`,
+  status: app.status || app.statut,
+  priority: app.priority || app.priorite,
+  description: app.description || '',
+  capabilities: app.capabilities || app.fonctionnalites || [],
+  firstActions: app.firstActions || app.premieres_actions || [],
+  endpoints: app.endpoints || [],
+  dependencies: app.dependencies || app.dependances || [],
+  states: app.states || app.etats || [],
+  permissions: app.permissions || [],
+  contracts: app.contracts || app.contrats || [],
+  controls: app.controls || app.controles || [],
+})
+
+const normalizeWorkflow = (workflow) => ({
+  code: workflow.code,
+  title: workflow.title || workflow.titre,
+  description: workflow.description || '',
+})
+
+function ManifestBlock({ title, items }) {
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
+      <h3 className="text-sm font-semibold uppercase tracking-wide text-slate-500">{title}</h3>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {items.length ? items.map((item) => (
+          <span key={item} className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-semibold text-slate-700">
+            {item}
+          </span>
+        )) : (
+          <span className="text-sm text-slate-500">Non declare</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default function AppDetailPage({ app: fallbackApp, relatedWorkflows }) {
+  const { data } = useQuery(['pilotage-app', fallbackApp.code], () => fetchPilotageApp(fallbackApp.code), { staleTime: 30000 })
+  const app = normalizeApp(data?.app || fallbackApp)
+  const liveWorkflows = (data?.workflows || relatedWorkflows).map(normalizeWorkflow)
   const Icon = iconMap[app.code] || FiGrid
   const category = categoryByCode[app.category]
   const categoryClass = categoryColors[app.category] || categoryColors.socle
@@ -60,7 +110,7 @@ export default function AppDetailPage({ app, relatedWorkflows }) {
   return (
     <Layout>
       <Head>
-        <title>{app.name} - FarmFlow</title>
+        <title>{`${app.name} - FarmFlow`}</title>
         <meta name="description" content={`${app.name} dans FarmFlow ERP agricole.`} />
       </Head>
 
@@ -117,6 +167,13 @@ export default function AppDetailPage({ app, relatedWorkflows }) {
         </div>
       </section>
 
+      <section className="mb-6 grid grid-cols-1 gap-4 xl:grid-cols-4">
+        <ManifestBlock title="Dependances" items={app.dependencies} />
+        <ManifestBlock title="Etats" items={app.states} />
+        <ManifestBlock title="Permissions" items={app.permissions} />
+        <ManifestBlock title="Contrats" items={app.contracts} />
+      </section>
+
       <section className="mb-6 grid grid-cols-1 gap-6 xl:grid-cols-[0.9fr_1.1fr]">
         <div className="card p-5">
           <h2 className="text-lg font-semibold text-gray-950">API et integrations</h2>
@@ -132,7 +189,7 @@ export default function AppDetailPage({ app, relatedWorkflows }) {
         <div className="card p-5">
           <h2 className="text-lg font-semibold text-gray-950">Workflows relies</h2>
           <div className="mt-4 space-y-3">
-            {relatedWorkflows.length ? relatedWorkflows.map((workflow) => (
+            {liveWorkflows.length ? liveWorkflows.map((workflow) => (
               <div key={workflow.code} className="rounded-lg border border-gray-200 p-4">
                 <p className="text-sm font-semibold text-gray-900">{workflow.title}</p>
                 <p className="mt-1 text-sm leading-6 text-gray-600">{workflow.description}</p>

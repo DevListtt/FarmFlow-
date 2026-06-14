@@ -11,6 +11,19 @@ from .comptabilite import CompteComptable, EcritureComptable, Journal, Fournisse
 from .communication import Campagne, CanalCommunication, ModeleMessage, EnvoiMessage
 from .messagerie import Message, Conversation, PieceJointe
 from .calendrier import Evenement, Rappel, TypeEvenement
+from .transactionnel import (
+    AuditFluxAgri,
+    CommandeAchatAgri,
+    CommandeClientAgri,
+    EcritureAutoAgri,
+    LigneCommandeClientAgri,
+    LigneTicketAgri,
+    MouvementStockAgri,
+    OperationBancaireAgri,
+    ProduitAgri,
+    TicketCaisseAgri,
+    TiersAgri,
+)
 
 __all__ = [
     # Animaux
@@ -36,5 +49,10 @@ __all__ = [
     # Messagerie
     'Message', 'Conversation', 'PieceJointe',
     # Calendrier
-    'Evenement', 'Rappel', 'TypeEvenement'
+    'Evenement', 'Rappel', 'TypeEvenement',
+    # Transactionnel V1
+    'AuditFluxAgri', 'CommandeAchatAgri', 'CommandeClientAgri', 'EcritureAutoAgri',
+    'LigneCommandeClientAgri', 'LigneTicketAgri',
+    'MouvementStockAgri', 'OperationBancaireAgri', 'ProduitAgri',
+    'TicketCaisseAgri', 'TiersAgri'
 ]

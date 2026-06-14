@@ -47,8 +47,8 @@ class CompteComptable(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
-    parent = relationship("CompteComptable", remote_side=[id])
-    enfants = relationship("CompteComptable", backref="parent_compte")
+    parent = relationship("CompteComptable", remote_side=[id], back_populates="enfants")
+    enfants = relationship("CompteComptable", back_populates="parent")
     ecritures = relationship("EcritureComptable", back_populates="compte")
 
 

@@ -27,7 +27,7 @@ FarmFlow vise un environnement centralise ou l'exploitant pilote toute la ferme 
 
 Le socle transverse est expose via `/pilotage/*` pour fournir la synthese, le catalogue d'applications, les workflows, les roles, les simulateurs, l'analyse bancaire preparatoire et les exports reglementaires.
 
-Voir aussi : [Vision ERP agricole](vision-erp-agricole.md).
+Voir aussi : [Vision ERP agricole](vision-erp-agricole.md), [Architecture modulaire](architecture-modulaire.md) et [Audit GitHub / roadmap](audit-github-roadmap.md).
 
 ## Installation
 
@@ -148,10 +148,12 @@ Vue transversale de pilotage ERP agricole.
 Endpoints API :
 
 - `GET /pilotage/dashboard`
+- `GET /pilotage/cockpit`
 - `GET /pilotage/apps`
 - `GET /pilotage/apps/{code}`
 - `GET /pilotage/workflows`
 - `GET /pilotage/roles`
+- `GET /pilotage/architecture`
 - `GET /pilotage/roadmap`
 - `POST /pilotage/configurer-exploitation`
 - `GET /pilotage/operations`
@@ -162,6 +164,7 @@ Endpoints API :
 - `POST /pilotage/banque/analyser-flux`
 - `GET /pilotage/ia/preparation`
 - `GET /pilotage/exports/reglementaires`
+- `GET /pilotage/references-open-source`
 
 ### Production
 
