@@ -226,7 +226,7 @@ export default function Home() {
         <section className="surface mb-7 w-full max-w-7xl p-4">
           <div className="mb-3 flex items-center gap-2">
             <FiClipboard className="h-4 w-4 text-emerald-700" />
-            <h2 className="text-base font-semibold text-slate-950">References integrees dans FarmFlow</h2>
+            <h2 className="text-base font-semibold text-slate-950">References qui guident FarmFlow</h2>
           </div>
           <div className="grid gap-2 md:grid-cols-3">
             {openSourceInfluences.map((item) => (
