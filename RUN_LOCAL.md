@@ -194,6 +194,23 @@ Tester le registre modulaire :
 docker compose -p farmflowlocal -f docker/docker-compose.local.yml run --rm backend python -m unittest discover -s tests
 ```
 
+Tester les ecrans principaux cote frontend :
+
+```powershell
+cd frontend
+npm ci
+npm run build
+npx playwright install chromium
+npm run start
+```
+
+Dans un second terminal :
+
+```powershell
+cd frontend
+npm run test:smoke
+```
+
 Appliquer les migrations Alembic :
 
 ```powershell
