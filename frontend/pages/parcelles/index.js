@@ -8,11 +8,14 @@ import {
   FiDatabase,
   FiFileText,
   FiLayers,
+  FiMapPin,
   FiSliders,
+  FiSmartphone,
   FiTruck,
 } from 'react-icons/fi'
 import Layout from '../../components/Layout'
 import ParcelleMapWorkbench from '../../components/ParcelleMapWorkbench'
+import { fieldModeSteps } from '../../lib/profileWorkspace'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 const SERVER_API_URL = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
@@ -234,6 +237,7 @@ export default function ParcellesPage({ initialMapData = null }) {
   const [datePrevue, setDatePrevue] = useState('2026-04-08')
   const [materiel, setMateriel] = useState('Tracteur 120ch + epandeur')
   const [responsable, setResponsable] = useState('Chef de culture')
+  const [fieldStep, setFieldStep] = useState(fieldModeSteps[0].code)
 
   const { data, isError } = useQuery('parcelles-cartographie', fetchCartographie, {
     staleTime: 60000,
@@ -266,6 +270,7 @@ export default function ParcellesPage({ initialMapData = null }) {
 
   const activeParcelle = parcelles.find((parcelle) => parcelle.id === activeParcelleId) || parcelles[0] || fallbackData.parcelles[0]
   const activeIlot = ilots.find((ilot) => ilot.id === activeIlotId) || fallbackData.ilots[0]
+  const activeFieldStep = fieldModeSteps.find((step) => step.code === fieldStep) || fieldModeSteps[0]
 
   const stats = useMemo(() => {
     const surface = parcelles.reduce((sum, parcelle) => sum + Number(parcelle.surface_ha || 0), 0)
@@ -323,6 +328,54 @@ export default function ParcellesPage({ initialMapData = null }) {
                 <p className="mt-1 text-xl font-semibold text-slate-950">{stat.value}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mb-5 grid gap-4 xl:grid-cols-[0.85fr_1.15fr]" data-testid="field-mode">
+        <div className="command-panel p-5 text-white">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1 text-xs font-semibold uppercase text-emerald-100">
+            <FiSmartphone className="h-4 w-4" />
+            Mode terrain
+          </div>
+          <h2 className="mt-3 text-2xl font-semibold text-white">{activeFieldStep.label}</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-300">{activeFieldStep.detail}</p>
+          <div className="mt-5 grid grid-cols-2 gap-2">
+            {fieldModeSteps.map((step) => (
+              <button
+                key={step.code}
+                type="button"
+                onClick={() => setFieldStep(step.code)}
+                className={`touch-button border px-3 py-2 text-sm ${
+                  fieldStep === step.code
+                    ? 'border-emerald-300 bg-emerald-300 text-slate-950'
+                    : 'border-white/15 bg-white/10 text-white hover:bg-white/15'
+                }`}
+              >
+                {step.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="surface grid gap-4 p-4 md:grid-cols-3">
+          <div className="rounded-lg border border-slate-200 bg-white/80 p-3">
+            <div className="flex items-center gap-2">
+              <FiMapPin className="h-4 w-4 text-emerald-700" />
+              <p className="text-xs font-semibold uppercase text-slate-500">Parcelle active</p>
+            </div>
+            <p className="mt-2 text-lg font-semibold text-slate-950">{activeParcelle.nom}</p>
+            <p className="mt-1 text-sm text-slate-500">{activeParcelle.culture} - {formatHa(activeParcelle.surface_ha)}</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white/80 p-3">
+            <p className="text-xs font-semibold uppercase text-slate-500">Prochaine operation</p>
+            <p className="mt-2 text-lg font-semibold text-slate-950">{operation}</p>
+            <p className="mt-1 text-sm text-slate-500">{datePrevue} - {responsable}</p>
+          </div>
+          <div className="rounded-lg border border-slate-200 bg-white/80 p-3">
+            <p className="text-xs font-semibold uppercase text-slate-500">Selection chantier</p>
+            <p className="mt-2 text-lg font-semibold text-slate-950">{selectedIds.length} parcelle{selectedIds.length > 1 ? 's' : ''}</p>
+            <p className="mt-1 text-sm text-slate-500">{selectedIds.join(', ') || activeParcelle.id}</p>
           </div>
         </div>
       </section>
@@ -461,8 +514,8 @@ export default function ParcellesPage({ initialMapData = null }) {
         </section>
       </section>
 
-      <section className="mt-5 grid gap-5 xl:grid-cols-[0.72fr_1.28fr]">
-        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+      <section className="mt-5 grid min-w-0 gap-5 xl:grid-cols-[0.72fr_1.28fr]">
+        <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <FiLayers className="h-5 w-5 text-emerald-700" />
             <h2 className="text-lg font-semibold text-slate-950">Ilots</h2>
@@ -487,7 +540,7 @@ export default function ParcellesPage({ initialMapData = null }) {
           </div>
         </section>
 
-        <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
+        <section className="min-w-0 rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
           <div className="mb-4 flex items-center gap-2">
             <FiCheckCircle className="h-5 w-5 text-emerald-700" />
             <h2 className="text-lg font-semibold text-slate-950">Chantiers a venir</h2>

@@ -40,3 +40,52 @@ jobs:
       - name: Clean Docker resources
         if: always()
         run: docker compose -p farmflowci -f docker/docker-compose.local.yml down -v --remove-orphans
+
+  frontend-smoke:
+    name: Frontend smoke tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Start frontend
+        run: |
+          npm run start -- --hostname 127.0.0.1 > ../next-smoke.log 2>&1 &
+          echo $! > ../next-smoke.pid
+          for i in {1..45}; do
+            if curl -fsS http://127.0.0.1:3000 > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat ../next-smoke.log
+          exit 1
+
+      - name: Run smoke tests
+        run: npm run test:smoke
+
+      - name: Stop frontend
+        if: always()
+        run: |
+          if [ -f ../next-smoke.pid ]; then
+            kill "$(cat ../next-smoke.pid)" || true
+          fi
