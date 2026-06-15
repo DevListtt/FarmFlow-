@@ -47,9 +47,13 @@ if ($dockerDesktop) {
 
 Section "Package FarmFlow"
 $hasStart = Test-Path ".\start-local.ps1"
+$hasSetup = Test-Path ".\setup-windows.ps1"
 $hasCompose = Test-Path ".\docker\docker-compose.local.yml"
+$hasLockfile = Test-Path ".\frontend\package-lock.json"
+Write-Host "setup-windows.ps1            : $hasSetup"
 Write-Host "start-local.ps1              : $hasStart"
 Write-Host "docker/docker-compose.local.yml : $hasCompose"
+Write-Host "frontend/package-lock.json   : $hasLockfile"
 if (-not $hasStart -or -not $hasCompose) {
     Write-Host "Lance ce script depuis le dossier FarmFlow extrait, pas depuis le ZIP ni depuis un autre dossier." -ForegroundColor Yellow
 }
@@ -85,6 +89,7 @@ Section "Commandes de relance"
 Write-Host "Depuis le dossier FarmFlow extrait :"
 Write-Host "Set-ExecutionPolicy -Scope Process Bypass"
 Write-Host "Get-ChildItem -Recurse -Filter *.ps1 | Unblock-File"
+Write-Host ".\setup-windows.ps1"
 Write-Host ".\stop-local.ps1 -RemoveVolumes"
 Write-Host ".\start-local.ps1"
 Write-Host ""

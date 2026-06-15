@@ -1,6 +1,6 @@
-# FarmFlow - Test local
+# FarmFlow - Test local Windows
 
-Ce package contient la branche `codex/farmflow-agri-erp` prete a tester en local.
+Ce depot contient FarmFlow prete a tester en local sur Windows 11.
 
 ## Prerequis
 
@@ -8,9 +8,24 @@ Ce package contient la branche `codex/farmflow-agri-erp` prete a tester en local
 - PowerShell
 - Ports libres : `3000`, `8000`, `5432`, `6379`, `8086`
 
-## Lancement rapide Windows
+## Preparation Windows
 
 Depuis ce dossier :
+
+```powershell
+.\setup-windows.cmd
+```
+
+Le script :
+
+- debloque les scripts PowerShell de cette copie locale ;
+- verifie Git si disponible ;
+- verifie Docker Desktop et Docker Compose ;
+- cree `backend/.env` depuis `backend/.env.example` ;
+- cree `frontend/.env.local` ;
+- signale les ports deja occupes.
+
+## Lancement rapide Docker
 
 ```powershell
 .\start-local.cmd
@@ -149,7 +164,7 @@ Publier cette version dans une branche GitHub apres installation/configuration d
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
-.\publish-github-v31.ps1 -Force
+.\scripts\publish-github-v31.ps1 -Force
 ```
 
 Le script cree la branche `codex/farmflow-v31-consolidation`, copie la version locale dans un clone propre, commit, puis pousse la branche. Il ne pousse pas directement sur `main`.
@@ -210,4 +225,4 @@ Le frontend Docker appelle l'API via `/api`, puis Next.js relaie vers le backend
 
 La carte GPS locale utilise les tuiles publiques OpenStreetMap pour eviter une cle API au prototype. En production, le fond peut etre remplace par un fournisseur dedie via la constante de tuiles ou un moteur cartographique plus avance.
 
-Le frontend Docker utilise Node 20 Alpine pour rester compatible avec l'outillage moderne. Les prochaines dettes techniques a traiter sont la stabilisation d'un lockfile npm, la reduction des alertes `npm audit`, puis le passage progressif a TypeScript/Zod sur les contrats API critiques.
+Le frontend Docker utilise Node 20 Alpine et `npm ci` avec `frontend/package-lock.json` pour stabiliser les builds. Les prochaines dettes techniques a traiter sont la reduction des alertes `npm audit`, puis le passage progressif a TypeScript/Zod sur les contrats API critiques.

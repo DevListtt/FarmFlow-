@@ -26,6 +26,17 @@ Construire une plateforme modulaire pour piloter une ferme de bout en bout :
 
 ## Lancement rapide
 
+Sous Windows 11, depuis le dossier du projet :
+
+```powershell
+.\setup-windows.cmd
+.\start-local.cmd
+```
+
+Le script de preparation verifie Docker Desktop, les ports locaux et cree les fichiers `.env` utiles.
+
+Alternative Docker directe :
+
 ```bash
 cd docker
 docker-compose up -d
