@@ -27,7 +27,7 @@ FarmFlow vise un environnement centralise ou l'exploitant pilote toute la ferme 
 
 Le socle transverse est expose via `/pilotage/*` pour fournir la synthese, le catalogue d'applications, les workflows, les roles, les simulateurs, l'analyse bancaire preparatoire et les exports reglementaires.
 
-Voir aussi : [Vision ERP agricole](vision-erp-agricole.md), [Architecture modulaire](architecture-modulaire.md) et [Audit GitHub / roadmap](audit-github-roadmap.md).
+Voir aussi : [Vision ERP agricole](vision-erp-agricole.md), [Architecture modulaire](architecture-modulaire.md), [Audit GitHub / roadmap](audit-github-roadmap.md) et [Scan GitHub des inspirations](scan-github-inspirations.md).
 
 ## Installation
 

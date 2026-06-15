@@ -78,9 +78,24 @@ export const openSourceInfluences = [
     detail: 'Assets, observations, logs et historique exploitable.',
   },
   {
+    source: 'Field Kit',
+    title: 'Terrain offline',
+    detail: 'Brouillons, synchronisation et usage mobile sans reseau.',
+  },
+  {
     source: 'LiteFarm',
     title: 'Terrain mobile',
     detail: 'Parcours accessibles, certification et indicateurs durables.',
+  },
+  {
+    source: 'FarmData2',
+    title: 'Certification bio',
+    detail: 'Recolte, elevage, conditionnement et preuves de controle.',
+  },
+  {
+    source: 'FarmVibes.AI',
+    title: 'IA geospatiale',
+    detail: 'Satellite, meteo, NDVI et carbone en connecteur futur.',
   },
 ]
 
@@ -101,4 +116,3 @@ export const fieldModeSteps = [
 export const getProfileWorkspace = (profileCode) => (
   profileWorkspaces[profileCode] || profileWorkspaces.exploitant
 )
-
